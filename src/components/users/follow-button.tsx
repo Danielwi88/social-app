@@ -3,16 +3,18 @@ import { Check, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { follow, unfollow } from "@/api/users";
+import type { SearchUsersResult } from "@/api/users";
 import type { PublicUser } from "@/types/user";
 import { cn } from "@/lib/utils";
 
 type FollowButtonProps = {
   username: string;
-  queryKeyProfile: readonly unknown[];
+  queryKeyProfile?: readonly unknown[];
   isFollowing?: boolean;
   followersCount?: number;
   compact?: boolean;
   className?: string;
+  disabled?: boolean;
 };
 
 export function FollowButton({
@@ -22,41 +24,69 @@ export function FollowButton({
   followersCount,
   compact = false,
   className,
+  disabled = false,
 }: FollowButtonProps) {
   const qc = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async () => (isFollowing ? unfollow(username) : follow(username)),
     onMutate: async () => {
-      await qc.cancelQueries({ queryKey: queryKeyProfile });
-      const prev = qc.getQueryData<PublicUser>(queryKeyProfile);
+      if (queryKeyProfile) {
+        await qc.cancelQueries({ queryKey: queryKeyProfile });
+      }
 
-      if (prev) {
-        const delta = isFollowing ? -1 : 1;
-        qc.setQueryData<PublicUser>(queryKeyProfile, {
-          ...prev,
+      const delta = isFollowing ? -1 : 1;
+      const prevProfile = queryKeyProfile ? qc.getQueryData(queryKeyProfile) : undefined;
+
+      if (prevProfile && !Array.isArray(prevProfile)) {
+        const profile = prevProfile as PublicUser;
+        qc.setQueryData<PublicUser>(queryKeyProfile!, {
+          ...profile,
           isFollowing: !isFollowing,
-          followers: Math.max(0, (prev.followers ?? 0) + delta),
+          followers: Math.max(0, (profile.followers ?? 0) + delta),
         });
       }
 
       const patchList = (prefix: string) => {
-        const queries = qc.getQueryCache().findAll({ queryKey: [prefix] });
+        const queries = qc.getQueryCache().findAll({
+          predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === prefix,
+        });
+
         queries.forEach((query) => {
-          const list = qc.getQueryData<PublicUser[]>(query.queryKey);
-          if (!list) return;
-          qc.setQueryData<PublicUser[]>(
-            query.queryKey,
-            list.map((user) =>
-              user.username === username
-                ? {
-                    ...user,
-                    isFollowing: !isFollowing,
-                    followers: Math.max(0, (user.followers ?? 0) + (isFollowing ? -1 : 1)),
-                  }
-                : user
-            )
-          );
+          const data = qc.getQueryData(query.queryKey);
+          if (!data) return;
+
+          if (Array.isArray(data)) {
+            qc.setQueryData<PublicUser[]>(
+              query.queryKey,
+              data.map((user) =>
+                user.username === username
+                  ? {
+                      ...user,
+                      isFollowing: !isFollowing,
+                      followers: Math.max(0, (user.followers ?? 0) + delta),
+                    }
+                  : user
+              )
+            );
+            return;
+          }
+
+          const maybeSearch = data as SearchUsersResult;
+          if (Array.isArray(maybeSearch.users)) {
+            qc.setQueryData<SearchUsersResult>(query.queryKey, {
+              ...maybeSearch,
+              users: maybeSearch.users.map((user) =>
+                user.username === username
+                  ? {
+                      ...user,
+                      isFollowing: !isFollowing,
+                      followers: Math.max(0, (user.followers ?? 0) + delta),
+                    }
+                  : user
+              ),
+            });
+          }
         });
       };
 
@@ -64,23 +94,28 @@ export function FollowButton({
       patchList("following");
       patchList("search-users");
 
-      return { prev };
+      return { prevProfile };
     },
     onError: (_error, _variables, context) => {
-      if (context?.prev) qc.setQueryData(queryKeyProfile, context.prev);
+      if (queryKeyProfile && context?.prevProfile) {
+        qc.setQueryData(queryKeyProfile, context.prevProfile);
+      }
       toast.error("Couldn’t update follow status", {
         description: "Please try again in a moment.",
       });
     },
     onSuccess: () => {
-      toast.success(isFollowing ? "Unfollowed" : "Following", {
-        description: isFollowing
-          ? `You’ll stop seeing updates from @${username}.`
-          : `You’ll start seeing updates from @${username}.`,
+      const nowFollowing = !isFollowing;
+      toast.success(nowFollowing ? "Unfollowed" : "Followed", {
+        description: nowFollowing
+          ? `You’ve unfollowed @${username}.`
+          : `You’re now following @${username}.`,
       });
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: queryKeyProfile });
+      if (queryKeyProfile) {
+        qc.invalidateQueries({ queryKey: queryKeyProfile });
+      }
     },
   });
 
@@ -105,9 +140,12 @@ export function FollowButton({
   return (
     <button
       type="button"
-      onClick={() => mutation.mutate()}
+      onClick={() => {
+        if (disabled) return;
+        mutation.mutate();
+      }}
       className={buttonClasses}
-      disabled={mutation.isPending}
+      disabled={disabled || mutation.isPending}
       aria-pressed={!!isFollowing}
       aria-label={ariaLabel}
     >

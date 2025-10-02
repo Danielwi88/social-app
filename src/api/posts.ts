@@ -32,9 +32,56 @@ type FeedPostRaw = {
   } | null;
   likeCount?: number | null;
   commentCount?: number | null;
-  saved?: boolean | null;
+  saved?: unknown;
+  savedByMe?: unknown;
+  isSaved?: unknown;
+  bookmarked?: unknown;
   liked?: boolean | null;
   likedByMe?: boolean | null;
+};
+
+const resolveSavedFlag = (value: unknown): boolean | undefined => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1" || normalized === "yes") return true;
+    if (normalized === "false" || normalized === "0" || normalized === "no") return false;
+  }
+  return undefined;
+};
+
+const mapPost = (item: FeedPostRaw): Post => {
+  const authorRaw = item.author ?? {};
+  const author: UserMini = {
+    id: authorRaw?.id !== undefined && authorRaw?.id !== null ? String(authorRaw.id) : "",
+    username: authorRaw?.username?.trim() || "",
+    displayName: authorRaw?.displayName ?? authorRaw?.name ?? authorRaw?.username ?? null,
+    name: authorRaw?.name ?? null,
+    avatarUrl: authorRaw?.avatarUrl ?? null,
+  };
+
+  const savedResolved =
+    resolveSavedFlag(item.saved) ??
+    resolveSavedFlag((item as FeedPostRaw & { saved_post?: unknown }).saved_post) ??
+    resolveSavedFlag(item.savedByMe) ??
+    resolveSavedFlag(item.isSaved) ??
+    resolveSavedFlag(item.bookmarked);
+
+  const likedResolved = resolveSavedFlag(item.liked ?? item.likedByMe);
+
+  return {
+    id: item.id !== undefined && item.id !== null ? String(item.id) : "",
+    imageUrl: item.imageUrl ?? "",
+    caption: item.caption ?? "",
+    createdAt: item.createdAt ?? new Date().toISOString(),
+    author,
+    likeCount: item.likeCount ?? 0,
+    commentCount: item.commentCount ?? 0,
+    saved: savedResolved,
+    liked: likedResolved,
+  };
 };
 
 export async function getFeed(cursor?: string, limit = 12) {
@@ -53,28 +100,7 @@ export async function getFeed(cursor?: string, limit = 12) {
       ? payload.data.items
       : [];
 
-  const items: Post[] = rawItems.map((item) => {
-    const authorRaw = item.author ?? {};
-    const author: UserMini = {
-      id: authorRaw?.id !== undefined && authorRaw?.id !== null ? String(authorRaw.id) : "",
-      username: authorRaw?.username?.trim() || "",
-      displayName: authorRaw?.displayName ?? authorRaw?.name ?? authorRaw?.username ?? null,
-      name: authorRaw?.name ?? null,
-      avatarUrl: authorRaw?.avatarUrl ?? null,
-    };
-
-    return {
-      id: item.id !== undefined && item.id !== null ? String(item.id) : "",
-      imageUrl: item.imageUrl ?? "",
-      caption: item.caption ?? "",
-      createdAt: item.createdAt ?? new Date().toISOString(),
-      author,
-      likeCount: item.likeCount ?? 0,
-      commentCount: item.commentCount ?? 0,
-      saved: item.saved ?? undefined,
-      liked: item.liked ?? item.likedByMe ?? undefined,
-    };
-  });
+  const items: Post[] = rawItems.map((item) => mapPost(item));
 
   const rawNextCursor =
     typeof payload.nextCursor === "string" && payload.nextCursor.trim() !== ""
@@ -96,7 +122,7 @@ export async function getFeed(cursor?: string, limit = 12) {
 
 export async function getPost(id: string) {
   const { data } = await api.get(`/posts/${id}`);
-  return data as Post;
+  return mapPost((data as FeedPostRaw) ?? {});
 }
 
 export async function likePost(id: string) {
@@ -111,12 +137,12 @@ export async function unlikePost(id: string) {
 
 export async function savePost(id: string) {
   const { data } = await api.post(`/posts/${id}/save`);
-  return data as { ok: true };
+  return data as { saved?: boolean };
 }
 
 export async function unsavePost(id: string) {
   const { data } = await api.delete(`/posts/${id}/save`);
-  return data as { ok: true };
+  return data as { saved?: boolean };
 }
 
 export async function createPost(payload: { image: File; caption?: string }) {

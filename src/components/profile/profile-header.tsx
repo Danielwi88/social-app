@@ -19,6 +19,7 @@ type ProfileHeaderProps = {
   primaryAction?: ReactNode;
   secondaryAction?: ReactNode;
   className?: string;
+  onStatClick?: (statLabel: string) => void;
 };
 
 export function ProfileHeader({
@@ -30,6 +31,7 @@ export function ProfileHeader({
   primaryAction,
   secondaryAction,
   className,
+  onStatClick,
 }: ProfileHeaderProps) {
   const hasActions = Boolean(primaryAction || secondaryAction);
 
@@ -83,8 +85,10 @@ export function ProfileHeader({
               key={stat.label}
               className={cn(
                 "flex flex-col items-center sm:items-start",
-                index > 0 && "sm:border-l sm:border-white/10 sm:pl-6"
+                index > 0 && "sm:border-l sm:border-white/10 sm:pl-6",
+                onStatClick && (stat.label === "Followers" || stat.label === "Following") && "cursor-pointer hover:opacity-80"
               )}
+              onClick={() => onStatClick && (stat.label === "Followers" || stat.label === "Following") && onStatClick(stat.label)}
             >
               <span className="text-[22px] font-semibold md:text-[30px]">
                 {formatStat(stat.value)}

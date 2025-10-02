@@ -1,5 +1,5 @@
 import { api } from "../lib/axios";
-import type { Post } from "../types/post";
+import type { Post, UserMini } from "../types/post";
 import { getFeed } from "./posts";
 
 type MeProfileRaw = {
@@ -99,9 +99,97 @@ export async function getMyPosts(authorId: string, limit = 20) {
   return page.items.filter((post) => String(post.author?.id ?? "") === authorId);
 }
 
-export async function getMySaved() {
-  const { data } = await api.get("/me/saved");
-  return data as Post[];
+type SavedEnvelopeRaw = {
+  items?: unknown[];
+  posts?: unknown[];
+  data?: {
+    items?: unknown[];
+    posts?: unknown[];
+  } | null;
+};
+
+type SavedPostRaw = {
+  id?: number | string | null;
+  postId?: number | string | null;
+  imageUrl?: string | null;
+  mediaUrl?: string | null;
+  caption?: string | null;
+  body?: string | null;
+  createdAt?: string | null;
+  likeCount?: number | null;
+  likes?: number | null;
+  commentCount?: number | null;
+  comments?: number | null;
+  liked?: boolean | null;
+  likedByMe?: boolean | null;
+  saved?: boolean | null;
+  author?: SavedAuthorRaw | null;
+  user?: SavedAuthorRaw | null;
+};
+
+type SavedAuthorRaw = {
+  id?: number | string | null;
+  username?: string | null;
+  name?: string | null;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  avatar?: string | null;
+};
+
+function mapSavedAuthor(raw?: SavedAuthorRaw | null): UserMini {
+  const id = raw?.id !== undefined && raw?.id !== null ? String(raw.id) : "";
+  const username = raw?.username?.trim() || "";
+  return {
+    id,
+    username,
+    displayName: raw?.displayName ?? raw?.name ?? raw?.username ?? null,
+    name: raw?.name ?? null,
+    avatarUrl: raw?.avatarUrl ?? raw?.avatar ?? null,
+  };
+}
+
+function mapSavedPost(entry: unknown): Post | null {
+  if (!entry || typeof entry !== "object") return null;
+  const rawCandidate = (entry as { post?: SavedPostRaw | null }).post ?? (entry as SavedPostRaw);
+  if (!rawCandidate || typeof rawCandidate !== "object") return null;
+
+  const raw = rawCandidate as SavedPostRaw;
+  const idCandidate = raw.id ?? raw.postId;
+  if (idCandidate === undefined || idCandidate === null) return null;
+
+  const authorRaw = raw.author ?? raw.user ?? null;
+  const author = mapSavedAuthor(authorRaw ?? undefined);
+
+  return {
+    id: String(idCandidate),
+    imageUrl: raw.imageUrl ?? raw.mediaUrl ?? "",
+    caption: raw.caption ?? raw.body ?? "",
+    createdAt: raw.createdAt ?? new Date().toISOString(),
+    author,
+    likeCount: raw.likeCount ?? raw.likes ?? 0,
+    commentCount: raw.commentCount ?? raw.comments ?? 0,
+    saved: true,
+    liked: raw.liked ?? raw.likedByMe ?? undefined,
+  };
+}
+
+export async function getMySaved(limit = 20) {
+  const { data } = await api.get("/me/saved", { params: { page: 1, limit } });
+  const envelope = (data ?? {}) as SavedEnvelopeRaw;
+  const candidateArrays: unknown[][] = [
+    Array.isArray(envelope.items) ? envelope.items : [],
+    Array.isArray(envelope.posts) ? envelope.posts : [],
+    Array.isArray(envelope.data?.items) ? envelope.data?.items ?? [] : [],
+    Array.isArray(envelope.data?.posts) ? envelope.data?.posts ?? [] : [],
+  ];
+
+  const posts = candidateArrays
+    .flat()
+    .map((item) => mapSavedPost(item))
+    .filter((post): post is Post => Boolean(post));
+
+  const deduped = new Map(posts.map((post) => [post.id, post] as const));
+  return Array.from(deduped.values());
 }
 
 export async function getMyLikes() {

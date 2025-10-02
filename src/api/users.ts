@@ -184,13 +184,17 @@ export async function searchUsers(q: string, page = 1, limit = 20): Promise<Sear
 }
 
 /** Follow graph */
+type FollowResponse = {
+  following?: boolean;
+};
+
 export async function follow(username: string) {
-  const { data } = await api.post(`/follow/${username}`);
-  return data as { ok: true };
+  const { data } = await api.post<FollowResponse>(`/follow/${username}`);
+  return data;
 }
 export async function unfollow(username: string) {
-  const { data } = await api.delete(`/follow/${username}`);
-  return data as { ok: true };
+  const { data } = await api.delete<FollowResponse>(`/follow/${username}`);
+  return data;
 }
 
 /** Followers/Following (public & mine) */
@@ -198,15 +202,101 @@ export async function getFollowers(username: string) {
   const { data } = await api.get(`/users/${username}/followers`);
   return data as PublicUser[];
 }
+
+export async function getUserFollowers(username: string) {
+  try {
+    const response = await api.get(`/users/${username}/followers?page=1&limit=20`);
+    const users = response.data?.users || [];
+    if (!Array.isArray(users)) return [];
+    return users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
+      id: String(user.id),
+      username: user.username,
+      displayName: user.name || user.username,
+      name: user.name,
+      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
+      posts: 0,
+      followers: 0,
+      following: 0,
+      likes: 0,
+      isFollowing: user.isFollowedByMe
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getUserFollowing(username: string) {
+  try {
+    const response = await api.get(`/users/${username}/following?page=1&limit=20`);
+    const users = response.data?.users || [];
+    if (!Array.isArray(users)) return [];
+    return users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
+      id: String(user.id),
+      username: user.username,
+      displayName: user.name || user.username,
+      name: user.name,
+      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
+      posts: 0,
+      followers: 0,
+      following: 0,
+      likes: 0,
+      isFollowing: user.isFollowedByMe
+    }));
+  } catch {
+    return [];
+  }
+}
 export async function getFollowing(username: string) {
   const { data } = await api.get(`/users/${username}/following`);
   return data as PublicUser[];
 }
 export async function getMyFollowers() {
-  const { data } = await api.get(`/me/followers`);
-  return data as PublicUser[];
+  try {
+    const response = await api.get(`/me/followers?page=1&limit=20`);
+    console.log('Full API response:', response.data);
+    const users = response.data?.users || [];
+    console.log('Extracted users:', users);
+    if (!Array.isArray(users)) {
+      console.log('Users is not an array:', typeof users);
+      return [];
+    }
+    const mapped = users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
+      id: String(user.id),
+      username: user.username,
+      displayName: user.name || user.username,
+      name: user.name,
+      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
+      posts: 0,
+      followers: 0,
+      following: 0,
+      likes: 0,
+      isFollowing: user.isFollowedByMe
+    }));
+    console.log('Mapped users:', mapped);
+    return mapped;
+  } catch (error) {
+    console.log('API error:', error);
+    return [];
+  }
 }
 export async function getMyFollowing() {
-  const { data } = await api.get(`/me/following`);
-  return data as PublicUser[];
+  try {
+    const response = await api.get(`/me/following?page=1&limit=20`);
+    const users = response.data?.users || [];
+    if (!Array.isArray(users)) return [];
+    return users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
+      id: String(user.id),
+      username: user.username,
+      displayName: user.name || user.username,
+      name: user.name,
+      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
+      posts: 0,
+      followers: 0,
+      following: 0,
+      likes: 0,
+      isFollowing: user.isFollowedByMe
+    }));
+  } catch {
+    return [];
+  }
 }

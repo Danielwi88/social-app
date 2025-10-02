@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useParams, useLocation, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { LayoutGrid, Heart, Send, ArrowLeft, Home, Plus, UserRound } from "lucide-react";
@@ -9,11 +10,15 @@ import { FollowButton } from "../../components/users/follow-button";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { Button } from "@/components/ui/button";
 import { ProfileMediaGrid } from "@/components/profile/profile-media-grid";
+import { FollowersModal } from "@/components/profile/followers-modal";
+import { FollowingModal } from "@/components/profile/following-modal";
 
 export default function PublicProfile() {
   const { username = "" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   const profile = useQuery({
     queryKey: ["profile", username],
@@ -83,7 +88,7 @@ export default function PublicProfile() {
         </button>
         <span className="text-sm font-medium text-white/80">{u.displayName}</span>
         <span className="size-10 overflow-hidden rounded-full border border-white/15 bg-white/5">
-          <img src={u.avatarUrl || ""} alt={u.displayName} className="h-full w-full object-cover" />
+          <img src={u.avatarUrl || undefined} alt={u.displayName} className="h-full w-full object-cover" />
         </span>
       </div>
 
@@ -98,6 +103,10 @@ export default function PublicProfile() {
           { label: "Following", value: u.following },
           { label: "Likes", value: u.likes },
         ]}
+        onStatClick={(label) => {
+          if (label === "Followers") setShowFollowersModal(true);
+          if (label === "Following") setShowFollowingModal(true);
+        }}
         primaryAction={
           isSelf ? undefined : (
             <FollowButton
@@ -218,6 +227,18 @@ export default function PublicProfile() {
           </Link>
         </nav>
       </div>
+
+      <FollowersModal
+        username={u.username}
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+      />
+      
+      <FollowingModal
+        username={u.username}
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+      />
     </div>
   );
 }

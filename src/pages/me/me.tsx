@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LayoutGrid, Bookmark, Send, Home, Plus, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -9,12 +9,16 @@ import { Button } from "@/components/ui/button";
 import MyPosts from "@/pages/me/sections/my-posts";
 import MySaved from "@/pages/me/sections/my-saved";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { FollowersModal } from "@/components/profile/followers-modal";
+import { FollowingModal } from "@/components/profile/following-modal";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Me() {
   const location = useLocation();
   const navigate = useNavigate();
   const q = useQuery({ queryKey: ["me"], queryFn: getMe });
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
 
   const hasToastedRef = useRef(false);
 
@@ -33,6 +37,14 @@ export default function Me() {
   if (q.isError || !q.data) return <p className="text-rose-400">Failed to load profile.</p>;
 
   const me = q.data;
+
+  const handleStatClick = (statLabel: string) => {
+    if (statLabel === "Followers") {
+      setFollowersModalOpen(true);
+    } else if (statLabel === "Following") {
+      setFollowingModalOpen(true);
+    }
+  };
 
   const shareProfile = async () => {
     const shareUrl = `${window.location.origin}/profile/${me.username}`;
@@ -71,6 +83,7 @@ export default function Me() {
         username={me.username}
         bio={me.bio}
         avatarUrl={me.avatarUrl}
+        onStatClick={handleStatClick}
         stats={[
           { label: "Post", value: me.posts },
           { label: "Followers", value: me.followers },
@@ -173,6 +186,19 @@ export default function Me() {
           </Link>
         </nav>
       </div>
+
+      <FollowersModal
+        username={me.username}
+        isOpen={followersModalOpen}
+        onClose={() => setFollowersModalOpen(false)}
+        isMe={true}
+      />
+      <FollowingModal
+        username={me.username}
+        isOpen={followingModalOpen}
+        onClose={() => setFollowingModalOpen(false)}
+        isMe={true}
+      />
     </div>
   );
 }

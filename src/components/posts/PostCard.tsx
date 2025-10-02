@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import type { Post } from "../../types/post";
 import { LikeButton } from "@/components/posts/like-button";
+import { SaveButton } from "@/components/posts/save-button";
 import { LikesModal } from "@/components/posts/LikesModal";
 import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { getUserDisplayName } from "@/lib/user";
@@ -14,6 +16,7 @@ dayjs.extend(relativeTime);
 export function PostCard({ post }: { post: Post }) {
   const location = useLocation();
   const [showLikesModal, setShowLikesModal] = useState(false);
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const authorName = getUserDisplayName(post.author);
   const profileHref = post.author?.username ? `/profile/${post.author.username}` : "/me";
   const handleShare = async () => {
@@ -74,37 +77,53 @@ export function PostCard({ post }: { post: Post }) {
       </button>
 
       <div className="p-3 space-y-3">
-        <div className="flex items-center gap-4">
-          <LikeButton post={post} />
-          <Link
-            to={`/posts/${post.id}`}
-            state={{ from: location.pathname, focusComments: true }}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white"
-            aria-label="View comments"
-          >
-            <MessageCircle className="h-5 w-5" />
-            <span>{post.commentCount}</span>
-          </Link>
-          <button
-            type="button"
-            onClick={handleShare}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white"
-            aria-label="Share post"
-          >
-            <Share2 className="h-5 w-5" />
-            <span>Share</span>
-          </button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <LikeButton post={post} />
+            <Link
+              to={`/posts/${post.id}`}
+              state={{ from: location.pathname, focusComments: true }}
+              className="flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white"
+              aria-label="View comments"
+            >
+              <MessageCircle className="h-5 w-5" />
+              <span>{post.commentCount}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white"
+              aria-label="Share post"
+            >
+              <Share2 className="h-5 w-5" />
+              <span>Share</span>
+            </button>
+          </div>
+          <SaveButton post={post} />
         </div>
 
         <div>
           <span className="font-medium text-white">{authorName}</span>
           {post.caption && (
-            <>
-              <span className="text-white/90 ml-2">{post.caption}</span>
-              <Link to={`/posts/${post.id}`} className="block text-sm text-blue-400 hover:text-blue-300 mt-1">
-                Show More
-              </Link>
-            </>
+            <div className="mt-2">
+              <p
+                className={cn(
+                  "text-sm text-white/90 whitespace-pre-wrap",
+                  !isCaptionExpanded && "line-clamp-2"
+                )}
+              >
+                {post.caption}
+              </p>
+              {post.caption.length > 160 && (
+                <button
+                  type="button"
+                  onClick={() => setIsCaptionExpanded((prev) => !prev)}
+                  className="mt-2 text-sm font-medium text-blue-400 transition hover:text-blue-300"
+                >
+                  {isCaptionExpanded ? "Show Less" : "Show More"}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
