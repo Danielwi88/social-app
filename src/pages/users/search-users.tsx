@@ -26,7 +26,7 @@ export default function SearchUsers() {
 
   const res = useQuery({
     queryKey: ["search-users", debounced],
-    queryFn: () => searchUsers(debounced),
+    queryFn: () => searchUsers(debounced, 1, 20),
     enabled,
   });
 
@@ -69,13 +69,13 @@ export default function SearchUsers() {
         </div>
       ) : res.isError ? (
         <p className="text-rose-400">Failed to search users.</p>
-      ) : (res.data?.length ?? 0) === 0 ? (
+      ) : (res.data?.users.length ?? 0) === 0 ? (
         <div className="rounded-xl border border-white/10 bg-zinc-900 p-6 text-center text-white/70">
           No results found. Try a different keyword.
         </div>
       ) : (
         <div className="space-y-3">
-          {res.data!.map((u) => (
+          {res.data!.users.map((u) => (
             <UserCard key={u.id} u={u} profileKey={["profile", u.username]} />
           ))}
         </div>

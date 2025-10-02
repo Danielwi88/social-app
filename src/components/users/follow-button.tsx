@@ -1,13 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { follow, unfollow } from "../../api/users";
-import type { PublicUser } from "../../types/user";
+import { Check, Loader2, Plus } from "lucide-react";
+import { toast } from "sonner";
 
-type Props = {
+import { follow, unfollow } from "@/api/users";
+import type { PublicUser } from "@/types/user";
+import { cn } from "@/lib/utils";
+
+type FollowButtonProps = {
   username: string;
-  queryKeyProfile: readonly unknown[]; // typically ["profile", username]
+  queryKeyProfile: readonly unknown[];
   isFollowing?: boolean;
   followersCount?: number;
   compact?: boolean;
+  className?: string;
 };
 
 export function FollowButton({
@@ -15,13 +20,13 @@ export function FollowButton({
   queryKeyProfile,
   isFollowing,
   followersCount,
-  compact,
-}: Props) {
+  compact = false,
+  className,
+}: FollowButtonProps) {
   const qc = useQueryClient();
 
-  const m = useMutation({
-    mutationFn: async () =>
-      (isFollowing ? unfollow(username) : follow(username)),
+  const mutation = useMutation({
+    mutationFn: async () => (isFollowing ? unfollow(username) : follow(username)),
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: queryKeyProfile });
       const prev = qc.getQueryData<PublicUser>(queryKeyProfile);
@@ -34,58 +39,85 @@ export function FollowButton({
           followers: Math.max(0, (prev.followers ?? 0) + delta),
         });
       }
-      // also try to update any user lists currently in cache
-      const patchList = (keyPrefix: string) => {
-        const keys = qc
-          .getQueryCache()
-          .findAll({ queryKey: [keyPrefix] })
-          .map((q) => q.queryKey);
-        keys.forEach((key) => {
-          const arr = qc.getQueryData<PublicUser[]>(key);
-          if (!arr) return;
-          qc.setQueryData(
-            key,
-            arr.map((u) =>
-              u.username === username
+
+      const patchList = (prefix: string) => {
+        const queries = qc.getQueryCache().findAll({ queryKey: [prefix] });
+        queries.forEach((query) => {
+          const list = qc.getQueryData<PublicUser[]>(query.queryKey);
+          if (!list) return;
+          qc.setQueryData<PublicUser[]>(
+            query.queryKey,
+            list.map((user) =>
+              user.username === username
                 ? {
-                    ...u,
+                    ...user,
                     isFollowing: !isFollowing,
-                    followers: Math.max(0, (u.followers ?? 0) + (isFollowing ? -1 : 1)),
+                    followers: Math.max(0, (user.followers ?? 0) + (isFollowing ? -1 : 1)),
                   }
-                : u
+                : user
             )
           );
         });
       };
+
       patchList("followers");
       patchList("following");
       patchList("search-users");
 
       return { prev };
     },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(queryKeyProfile, ctx.prev);
+    onError: (_error, _variables, context) => {
+      if (context?.prev) qc.setQueryData(queryKeyProfile, context.prev);
+      toast.error("Couldn’t update follow status", {
+        description: "Please try again in a moment.",
+      });
+    },
+    onSuccess: () => {
+      toast.success(isFollowing ? "Unfollowed" : "Following", {
+        description: isFollowing
+          ? `You’ll stop seeing updates from @${username}.`
+          : `You’ll start seeing updates from @${username}.`,
+      });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeyProfile });
     },
   });
 
-  const label = isFollowing ? (compact ? "Following" : "Unfollow") : "Follow";
+  const label = isFollowing ? "Following" : "Follow";
   const ariaLabel = typeof followersCount === "number"
     ? `${label} ${username}. ${followersCount} followers`
     : `${label} ${username}`;
+
+  const buttonClasses = cn(
+    "flex items-center justify-center gap-2 rounded-full font-semibold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 disabled:cursor-not-allowed disabled:opacity-60",
+    compact
+      ? "h-9 border border-white/20 bg-white/[0.08] px-4 text-xs hover:bg-white/[0.16]"
+      : isFollowing
+        ? "h-11 border border-white/15 bg-white/[0.05] px-7 text-white hover:bg-white/[0.12]"
+        : "h-11 bg-violet-600 px-8 text-white hover:bg-violet-500",
+    className
+  );
+
+  const showIcon = !compact;
+  const Icon = isFollowing ? Check : Plus;
+
   return (
     <button
-      onClick={() => m.mutate()}
-      className={`rounded-full px-3 py-1 text-sm ${
-        isFollowing ? "bg-zinc-800 text-white" : "bg-violet-600 hover:bg-violet-500 text-white"
-      } disabled:opacity-60`}
-      disabled={m.isPending}
+      type="button"
+      onClick={() => mutation.mutate()}
+      className={buttonClasses}
+      disabled={mutation.isPending}
       aria-pressed={!!isFollowing}
       aria-label={ariaLabel}
     >
-      {m.isPending ? "…" : label}
+      {mutation.isPending ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+      ) : (
+        showIcon && <Icon className="h-4 w-4" aria-hidden="true" />
+      )}
+      <span>{label}</span>
+      {mutation.isPending && <span className="sr-only">Updating follow status…</span>}
     </button>
   );
 }

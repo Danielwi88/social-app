@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { getMe } from "../../../api/me";
-import { EditProfileDialog } from "../../../components/me/edit-profile-dialog";
 import { Button } from "@/components/ui/button";
 
 export default function Settings() {
@@ -11,9 +11,11 @@ export default function Settings() {
   return (
     <div className="space-y-4 max-w-md">
       <p className="text-white/80">
-        Manage your basic profile info. Use the dialog to update your display name, bio, and avatar URL.
+        Manage your basic profile info. Head over to the edit profile screen to update your details.
       </p>
-      <EditProfileDialog me={q.data} trigger={<Button>Edit Profile</Button>} />
+      <Button asChild>
+        <Link to="/me/edit">Edit Profile</Link>
+      </Button>
     </div>
   );
 }

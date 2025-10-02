@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -162,16 +163,21 @@ export default function Register() {
                 {...register("password")}
                 placeholder="••••••••"
                 aria-invalid={!!formState.errors.password}
-                className={cn(inputBase, formState.errors.password ? inputError : inputOk)}
+                className={cn(
+                  inputBase,
+                  formState.errors.password ? inputError : inputOk,
+                  "pr-12"
+                )}
               />
             }
             trailing={
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 transition hover:text-white"
                 onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             }
           />
@@ -185,16 +191,21 @@ export default function Register() {
                 {...register("confirmPassword")}
                 placeholder="Confirm your password"
                 aria-invalid={!!formState.errors.confirmPassword}
-                className={cn(inputBase, formState.errors.confirmPassword ? inputError : inputOk)}
+                className={cn(
+                  inputBase,
+                  formState.errors.confirmPassword ? inputError : inputOk,
+                  "pr-12"
+                )}
               />
             }
             trailing={
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 transition hover:text-white"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? "Hide" : "Show"}
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             }
           />

@@ -1,10 +1,19 @@
 import axios from "axios";
 import { getToken } from "./storage";
 
-const baseURL =
-  (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) ||
-  (import.meta.env.VITE_API_BASE && import.meta.env.VITE_API_BASE.trim()) ||
-  "/api";
+const envApiUrl = import.meta.env.VITE_API_URL?.trim();
+const envApiBase = import.meta.env.VITE_API_BASE?.trim();
+
+let baseURL: string;
+
+if (envApiUrl) {
+  baseURL = envApiUrl;
+} else if (envApiBase) {
+  const normalized = envApiBase.replace(/\/$/, "");
+  baseURL = normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+} else {
+  baseURL = "/api";
+}
 
 export const api = axios.create({
   baseURL,

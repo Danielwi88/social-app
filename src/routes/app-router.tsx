@@ -8,7 +8,9 @@ const Login = lazy(() => import('../pages/auth/login'));
 const Register = lazy(() => import('../pages/auth/register'));
 const Feed = lazy(() => import('../pages/feed/feed'));
 const Me = lazy(() => import('../pages/me/me'));
+const EditProfile = lazy(() => import('@/pages/me/edit-profile'));
 const PostDetail = lazy(() => import('@/pages/post/post-detail'));
+const AddPost = lazy(() => import('@/pages/post/add-post'));
 
 const PublicProfile = lazy(() => import('@/pages/profile/public-profile'));
 const SearchUsers = lazy(() => import('@/pages/users/search-users'));
@@ -25,7 +27,6 @@ export function AppRouter() {
         {/* Public */}
           <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/profile/:username' element={<PublicProfile />} />
         <Route path='/users/search' element={<SearchUsers />} />
         <Route path='/users/:username/followers' element={<PublicFollowers />} />
         <Route path='/users/:username/following' element={<PublicFollowing />} />
@@ -39,10 +40,13 @@ export function AppRouter() {
           }
         >
           <Route path='/feed' element={<Feed />} />
+          <Route path='/posts/new' element={<AddPost />} />
           <Route path='/me' element={<Me />} />
+          <Route path='/me/edit' element={<EditProfile />} />
           <Route path='/me/followers' element={<MyFollowers />} />
           <Route path='/me/following' element={<MyFollowing />} />
           <Route path='/posts/:id' element={<PostDetail />} />
+          <Route path='/profile/:username' element={<PublicProfile />} />
         </Route>
 
         {/* Default */}

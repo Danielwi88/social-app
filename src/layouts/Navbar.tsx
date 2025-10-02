@@ -2,33 +2,64 @@ import { getMe } from "@/api/me";
 import { searchUsers } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { clearAuth, selectAuth, setUser } from "@/features/auth/authSlice";
 import { useDebounce } from "@/hooks/useDebounce";
+import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { LogoGlyph } from "@/shared/logo";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Menu, Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+
+const normalizeAvatarUrl = (value?: string | null): string | undefined => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const withVersionParam = (src: string, version: number): string => {
+  if (!src) return AVATAR_FALLBACK_SRC;
+  try {
+    const origin =
+      typeof window === "undefined" || src.startsWith("http") ? undefined : window.location.origin;
+    const url = new URL(src, origin);
+    url.searchParams.set("v", String(version));
+    return url.toString();
+  } catch {
+    const separator = src.includes("?") ? "&" : "?";
+    return `${src}${separator}v=${version}`;
+  }
+};
 
 export function AppLayout() {
   const nav = useNavigate();
   const dispatch = useAppDispatch();
-  const { token, user } = useAppSelector(selectAuth);
+  const { token, user, avatarVersion } = useAppSelector(selectAuth);
   const fetching = useRef(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [avatarSyncing, setAvatarSyncing] = useState(false);
+  const normalizedInitialAvatar = normalizeAvatarUrl(user?.avatarUrl);
+  const [avatarSrc, setAvatarSrc] = useState(() =>
+    normalizedInitialAvatar ? withVersionParam(normalizedInitialAvatar, avatarVersion) : AVATAR_FALLBACK_SRC
+  );
+  const lastAvatarRef = useRef<string | undefined>(normalizedInitialAvatar);
+  const lastVersionRef = useRef<number>(avatarVersion);
 
   const debounced = useDebounce(searchTerm, 350);
+  const SEARCH_LIMIT = 6;
   const searchEnabled = debounced.trim().length >= 2;
 
   const searchQuery = useQuery({
-    queryKey: ["app-nav-search", debounced],
-    queryFn: () => searchUsers(debounced),
+    queryKey: ["app-nav-search", debounced, SEARCH_LIMIT],
+    queryFn: () => searchUsers(debounced, 1, SEARCH_LIMIT),
     enabled: searchEnabled,
+    staleTime: 15_000,
   });
 
   const desktopSearchRef = useRef<HTMLDivElement | null>(null);
@@ -79,6 +110,47 @@ export function AppLayout() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleRefreshStart = () => setAvatarSyncing(true);
+    const handleRefreshEnd = () => setAvatarSyncing(false);
+
+    window.addEventListener("navbar-refresh-start", handleRefreshStart);
+    window.addEventListener("navbar-refresh-end", handleRefreshEnd);
+
+    return () => {
+      window.removeEventListener("navbar-refresh-start", handleRefreshStart);
+      window.removeEventListener("navbar-refresh-end", handleRefreshEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    const normalized = normalizeAvatarUrl(user?.avatarUrl);
+    const versionChanged = avatarVersion !== lastVersionRef.current;
+    const avatarChanged = normalized !== lastAvatarRef.current;
+
+    if (!versionChanged && !avatarChanged) return;
+
+    lastVersionRef.current = avatarVersion;
+    lastAvatarRef.current = normalized;
+
+    if (!normalized) {
+      setAvatarSyncing(false);
+      setAvatarSrc(AVATAR_FALLBACK_SRC);
+      return;
+    }
+
+    setAvatarSyncing(true);
+    setAvatarSrc(withVersionParam(normalized, avatarVersion));
+  }, [user?.avatarUrl, avatarVersion]);
+
+  const handleAvatarLoad = () => setAvatarSyncing(false);
+  const handleAvatarLoadError = (event: SyntheticEvent<HTMLImageElement, Event>) => {
+    setAvatarSyncing(false);
+    handleAvatarError(event);
+  };
+
   const handleSearchNavigate = () => {
     const trimmed = searchTerm.trim();
     if (!trimmed) return;
@@ -92,85 +164,107 @@ export function AppLayout() {
     nav("/login", { replace: true });
   };
 
+  const results = searchQuery.data?.users ?? [];
+  const totalResults = searchQuery.data?.pagination.total ?? 0;
+  const hasMoreResults = totalResults > results.length;
+
   const showResults = searchFocused && searchEnabled;
-  const results = searchQuery.data ?? [];
 
-  const renderSearchResults = (
-    <div
-      className="absolute left-0 right-0 top-full mt-2 max-h-60 overflow-y-auto rounded-2xl border border-white/10 bg-black/90 p-3 shadow-xl backdrop-blur"
-      role="listbox"
-    >
-      {searchQuery.isLoading ? (
-        <p className="text-sm text-white/60">Searching…</p>
-      ) : searchQuery.isError ? (
-        <p className="text-sm text-rose-400">Failed to fetch users.</p>
-      ) : results.length === 0 ? (
-        <p className="text-sm text-white/60">No users found.</p>
-      ) : (
-        <ul className="space-y-2">
-          {results.slice(0, 5).map((u) => (
-            <li key={u.id}>
-              <button
-                type="button"
-                className="w-full rounded-xl bg-white/5 px-3 py-2 text-left text-white/90 hover:bg-white/10"
-                onClick={() => {
-                  nav(`/profile/${u.username}`);
-                  setSearchTerm("");
-                  setSearchFocused(false);
-                  setMobileSearchOpen(false);
-                }}
-              >
-                <div className="text-sm font-semibold">{u.displayName}</div>
-                <div className="text-xs text-white/60">@{u.username}</div>
-              </button>
-            </li>
-          ))}
-          {results.length > 5 && (
-            <li>
-              <button
-                type="button"
-                className="w-full rounded-xl border border-violet-500 px-3 py-2 text-center text-sm font-semibold text-violet-400 hover:bg-violet-500/10"
-                onClick={handleSearchNavigate}
-              >
-                View all results
-              </button>
-            </li>
-          )}
-        </ul>
-      )}
-    </div>
-  );
+  const renderSearchResults = (variant: "desktop" | "mobile") => {
+    const containerClasses =
+      variant === "desktop"
+        ? "absolute left-0 right-0 top-full mt-3 rounded-[28px] border border-white/10 bg-[#08080C]/95 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur"
+        : "absolute left-0 right-0 top-full mt-3 rounded-[28px] border border-white/10 bg-[#08080C]/95 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur";
 
-  const avatarUrl = user?.avatarUrl || "/avatar-fallback.png";
+    const listItemClass =
+      "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition hover:bg-white/[0.08]";
+
+    const content = searchQuery.isLoading ? (
+      <p className="px-2 py-3 text-sm text-white/60">Searching…</p>
+    ) : searchQuery.isError ? (
+      <p className="px-2 py-3 text-sm text-rose-400">Failed to fetch users.</p>
+    ) : results.length === 0 ? (
+      <div className="flex flex-col items-center gap-1 px-2 py-8 text-center">
+        <p className="text-sm font-semibold text-white">No results found</p>
+        <p className="text-xs text-white/50">Change your keyword</p>
+      </div>
+    ) : (
+      <ul className="max-h-72 space-y-1 overflow-y-auto pr-1" role="listbox">
+        {results.map((u) => (
+          <li key={u.id}>
+            <button
+              type="button"
+              className={listItemClass}
+              onClick={() => {
+                nav(`/profile/${u.username}`);
+                setSearchTerm("");
+                setSearchFocused(false);
+                setMobileSearchOpen(false);
+              }}
+            >
+              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/10">
+                <img
+                  src={u.avatarUrl || AVATAR_FALLBACK_SRC}
+                  alt={u.displayName}
+                  className="h-full w-full object-cover"
+                  onError={handleAvatarError}
+                />
+              </span>
+              <span className="flex flex-col text-left">
+                <span className="text-sm font-semibold text-white">{u.displayName}</span>
+                <span className="text-xs text-white/60">@{u.username}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+        {hasMoreResults && (
+          <li>
+            <button
+              type="button"
+              className="mt-1 w-full rounded-2xl border border-violet-500 px-3 py-2 text-center text-sm font-semibold text-violet-400 transition hover:bg-violet-500/10"
+              onClick={handleSearchNavigate}
+            >
+              View all results
+            </button>
+          </li>
+        )}
+      </ul>
+    );
+
+    return <div className={containerClasses}>{content}</div>;
+  };
+
   const displayName = user?.displayName ?? user?.username ?? "Your profile";
 
   return (
     <div className="min-h-dvh bg-black text-white">
       <header className="sticky top-0 z-40 border-b border-violet-700/40 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/70">
         <div className="container mx-auto flex h-20 items-center gap-4 px-4">
-          <Link to="/feed" className="flex items-center gap-3 text-white">
-            <LogoGlyph className="h-10 w-10 text-white" />
-            <span className="text-lg font-semibold tracking-wide">Sociality</span>
-          </Link>
+          <div className="flex flex-1 items-center">
+            <Link to="/feed" className="flex items-center gap-3 text-white">
+              <LogoGlyph className="h-10 w-10 text-white" />
+              <span className="text-lg font-semibold tracking-wide">Sociality</span>
+            </Link>
+          </div>
 
-          <div className="relative hidden flex-1 md:block" ref={desktopSearchRef}>
-            <div className="relative">
+          <div
+            className="relative hidden flex-1 justify-center md:flex"
+            ref={desktopSearchRef}
+          >
+            <div className="relative w-full max-w-[491px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSearchNavigate();
-                }}
                 placeholder="Search"
-                className="h-12 rounded-full border border-white/10 bg-white/[0.06] pl-11 pr-4 text-sm text-white placeholder:text-white/40"
+                className="h-12 w-full rounded-full border border-white/10 bg-white/[0.06] pl-11 pr-4 text-sm text-white placeholder:text-white/40"
               />
+              {showResults && renderSearchResults("desktop")}
             </div>
-            {showResults && renderSearchResults}
           </div>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex flex-1 items-center justify-end gap-3">
             <button
               type="button"
               className="md:hidden rounded-full border border-white/20 p-2 text-white"
@@ -191,8 +285,15 @@ export function AppLayout() {
                 className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10"
                 onClick={() => setAccountMenuOpen((prev) => !prev)}
               >
-                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/20">
-                  <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/20">
+                  <img
+                    src={avatarSrc}
+                    alt={displayName}
+                    className={`h-full w-full object-cover transition-opacity duration-150 ${avatarSyncing ? "opacity-0" : "opacity-100"}`}
+                    onLoad={handleAvatarLoad}
+                    onError={handleAvatarLoadError}
+                  />
+                  {avatarSyncing && <Skeleton className="absolute inset-0 h-full w-full" />}
                 </span>
                 <span className="text-sm font-semibold">{displayName}</span>
                 <ChevronDown className="h-4 w-4 text-white/60" />
@@ -254,9 +355,6 @@ export function AppLayout() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSearchNavigate();
-                }}
                 placeholder="Search"
                 className="h-12 rounded-full border border-white/10 bg-white/[0.08] pl-12 pr-12 text-sm text-white placeholder:text-white/40"
               />
@@ -272,13 +370,8 @@ export function AppLayout() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="relative mt-3">{showResults && renderSearchResults}</div>
-            <Button
-              className="mt-3 w-full rounded-full bg-violet-500 text-white hover:bg-violet-400"
-              onClick={handleSearchNavigate}
-            >
-              Search
-            </Button>
+            <div className="relative mt-3">{showResults && renderSearchResults("mobile")}</div>
+
           </div>
         )}
 

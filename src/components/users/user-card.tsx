@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import type { PublicUser } from "../../types/user";
 import { FollowButton } from "./follow-button";
 
@@ -7,8 +8,10 @@ export function UserCard({ u, profileKey }: { u: PublicUser; profileKey?: readon
     <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-zinc-900 p-3">
       <div className="flex items-center gap-3">
         <img
-          src={u.avatarUrl || "/avatar-fallback.png"}
+          src={u.avatarUrl || AVATAR_FALLBACK_SRC}
+          alt={u.displayName}
           className="h-10 w-10 rounded-full object-cover"
+          onError={handleAvatarError}
         />
         <div>
           <Link to={`/profile/${u.username}`} className="font-medium">

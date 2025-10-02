@@ -1,34 +1,119 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import type { Post } from "../../types/post";
 import { LikeButton } from "@/components/posts/like-button";
-import { SaveButton } from "@/components/posts/save-button";
+import { LikesModal } from "@/components/posts/LikesModal";
+import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
+import { getUserDisplayName } from "@/lib/user";
+import { MessageCircle, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 export function PostCard({ post }: { post: Post }) {
+  const location = useLocation();
+  const [showLikesModal, setShowLikesModal] = useState(false);
+  const authorName = getUserDisplayName(post.author);
+  const profileHref = post.author?.username ? `/profile/${post.author.username}` : "/me";
+  const handleShare = async () => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") {
+      toast.error("Sharing isn’t available right now");
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/posts/${post.id}`;
+    const shareTitle = post.caption || `Check out ${authorName}'s post on Sociality`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ url: shareUrl, title: shareTitle });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Post link copied to clipboard");
+        return;
+      }
+    } catch {
+      toast.error("Couldn’t copy the post link");
+      return;
+    }
+
+    toast.error("Sharing isn’t supported in this browser yet");
+  };
+
   return (
     <article className="rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
       <header className="flex items-center gap-3 p-3">
-        <img src={post.author.avatarUrl || "/avatar-fallback.png"} alt={post.author.displayName} className="h-9 w-9 rounded-full object-cover" />
+        <Link to={profileHref} className="inline-flex" aria-label={`View ${authorName}'s profile`}>
+          <img
+            src={post.author?.avatarUrl || AVATAR_FALLBACK_SRC}
+            alt={authorName}
+            className="h-9 w-9 rounded-full object-cover transition hover:opacity-90"
+            onError={handleAvatarError}
+          />
+        </Link>
         <div className="leading-tight">
-          <Link to={`/posts/${post.id}`} className="font-medium">{post.author.displayName}</Link>
+          <Link to={profileHref} className="font-medium text-white transition hover:text-white/80">
+            {authorName}
+          </Link>
           <div className="text-xs text-white/60">{dayjs(post.createdAt).fromNow()}</div>
         </div>
       </header>
 
-      <Link to={`/posts/${post.id}`}>
+      <button onClick={() => setShowLikesModal(true)} className="w-full">
         <img src={post.imageUrl} alt={post.caption?.slice(0, 60) || "post"} className="w-full aspect-square object-cover" />
-      </Link>
+      </button>
 
       <div className="p-3 space-y-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <LikeButton post={post} />
-          <SaveButton post={post} />
-          <Link to={`/posts/${post.id}`} className="text-sm text-white/70 hover:text-white">💬 {post.commentCount}</Link>
+          <Link
+            to={`/posts/${post.id}`}
+            state={{ from: location.pathname, focusComments: true }}
+            className="flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white"
+            aria-label="View comments"
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span>{post.commentCount}</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white"
+            aria-label="Share post"
+          >
+            <Share2 className="h-5 w-5" />
+            <span>Share</span>
+          </button>
         </div>
-        {post.caption && <p className="text-sm text-white/90">{post.caption}</p>}
+
+        <div>
+          <span className="font-medium text-white">{authorName}</span>
+          {post.caption && (
+            <>
+              <span className="text-white/90 ml-2">{post.caption}</span>
+              <Link to={`/posts/${post.id}`} className="block text-sm text-blue-400 hover:text-blue-300 mt-1">
+                Show More
+              </Link>
+            </>
+          )}
+        </div>
       </div>
+      
+      <LikesModal 
+        postId={post.id} 
+        isOpen={showLikesModal} 
+        onClose={() => setShowLikesModal(false)} 
+      />
     </article>
   );
 }

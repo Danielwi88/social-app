@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { InfiniteData } from "@tanstack/react-query";
+import { Heart } from "lucide-react";
 import type { FeedPage, Post } from "../../types/post";
 import { likePost, unlikePost } from "../../api/posts";
 
@@ -52,10 +53,19 @@ export function LikeButton({ post }: { post: Post }) {
   return (
     <button
       onClick={() => mutate.mutate()}
-      className={`text-sm select-none ${post.liked ? "text-pink-400" : "text-white/80"}`}
+      className={`flex items-center gap-1.5 text-sm font-medium transition-colors select-none ${
+        post.liked ? "text-pink-400" : "text-white/80 hover:text-white"
+      }`}
       aria-pressed={post.liked}
+      aria-label={post.liked ? "Unlike" : "Like"}
+      type="button"
     >
-      ❤ {post.likeCount}
+      <Heart
+        className="h-5 w-5 transition"
+        strokeWidth={post.liked ? 0 : 2}
+        fill={post.liked ? "currentColor" : "none"}
+      />
+      <span>{post.likeCount}</span>
     </button>
   );
 }

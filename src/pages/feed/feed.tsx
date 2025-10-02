@@ -3,13 +3,15 @@ import { useEffect, useRef } from "react";
 import { getFeed } from "../../api/posts";
 import { PostCard } from "../../components/posts/PostCard";
 
+const PAGE_SIZE = 20;
+
 export default function Feed() {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const query = useInfiniteQuery({
-    queryKey: ["feed"],
-    queryFn: ({ pageParam }) => getFeed(pageParam as string | undefined),
-    initialPageParam: undefined as string | undefined,
+    queryKey: ["feed", PAGE_SIZE] as const,
+    queryFn: ({ pageParam }) => getFeed(pageParam as string | undefined, PAGE_SIZE),
+    initialPageParam: "1",
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 
@@ -31,14 +33,14 @@ export default function Feed() {
   if (isLoading) return <p className="text-white/70">Loading timeline…</p>;
   if (isError) return <p className="text-rose-400">Failed to load feed.</p>;
 
-  const items = data?.pages.flatMap((p) => p.items) ?? [];
+  const items = data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
   if (items.length === 0) return <p className="text-white/70">Your feed is empty. Follow users to see posts.</p>;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {items.map((post) => (
-      <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} />
       ))}
       <div ref={sentinelRef} className="h-8" />
       {isFetchingNextPage && <p className="text-center text-white/60">Loading more…</p>}

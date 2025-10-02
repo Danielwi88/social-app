@@ -1,7 +1,8 @@
 export type UserMini = {
   id: string;
   username: string;
-  displayName: string;
+  displayName?: string | null;
+  name?: string | null;
   avatarUrl?: string | null;
 };
 

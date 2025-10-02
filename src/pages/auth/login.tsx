@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { LogoGlyph } from "@/shared/logo";
 import { cn } from "@/lib/utils";
 import { AuthBackdrop } from "./components/auth-backdrop";
+import { Eye, EyeOff } from "lucide-react";
 
 const schema = z.object({
   usernameOrEmail: z.string().min(1, "Required"),
@@ -26,6 +28,7 @@ export default function Login() {
   const nav = useNavigate();
   const [sp] = useSearchParams();
   const returnTo = sp.get("returnTo") || "/feed";
+  const [showPassword, setShowPassword] = useState(false);
 
   const { register, handleSubmit, formState } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -109,16 +112,27 @@ export default function Login() {
             <label className="text-xs font-semibold uppercase tracking-wide text-white/70">
               Password
             </label>
-            <Input
-              type="password"
-              {...register("password")}
-              placeholder="••••••••"
-              aria-invalid={!!formState.errors.password}
-              className={cn(
-                inputBase,
-                formState.errors.password ? inputError : inputOk
-              )}
-            />
+            <div className="relative flex items-center">
+              <Input
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                placeholder="••••••••"
+                aria-invalid={!!formState.errors.password}
+                className={cn(
+                  inputBase,
+                  formState.errors.password ? inputError : inputOk,
+                  "pr-12"
+                )}
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500/60 transition hover:font-bold"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {renderError("password")}
           </div>
 

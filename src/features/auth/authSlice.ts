@@ -1,12 +1,56 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type Draft, type PayloadAction } from "@reduxjs/toolkit";
 import { clearToken, setToken as persistToken } from "../../lib/storage";
 
+const normalizeAvatar = (value?: string | null): string | undefined => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
 export type AuthUser = { id: string; username: string; displayName: string; avatarUrl?: string };
-export type AuthState = { token: string | null; user: AuthUser | null };
+export type AuthState = { token: string | null; user: AuthUser | null; avatarVersion: number };
 
 const initialState: AuthState = {
   token: localStorage.getItem("sociality.token"),
   user: null,
+  avatarVersion: 0,
+};
+
+const applyUserUpdate = (state: Draft<AuthState>, incoming: AuthUser | null) => {
+  const prevUser = state.user;
+
+  if (!incoming) {
+    state.user = null;
+    return;
+  }
+
+  const trimmedUsername = incoming.username.trim();
+  const trimmedDisplayName = incoming.displayName.trim();
+  const nextUsername = trimmedUsername || prevUser?.username || "";
+  const nextDisplayName = trimmedDisplayName || prevUser?.displayName || nextUsername;
+  const prevAvatar = normalizeAvatar(prevUser?.avatarUrl);
+  const nextAvatar = normalizeAvatar(incoming.avatarUrl) ?? prevAvatar;
+
+  if (
+    prevUser &&
+    prevUser.id === incoming.id &&
+    prevUser.username === nextUsername &&
+    prevUser.displayName === nextDisplayName &&
+    prevAvatar === nextAvatar
+  ) {
+    return;
+  }
+
+  if (prevAvatar !== nextAvatar) {
+    state.avatarVersion += 1;
+  }
+
+  state.user = {
+    id: incoming.id,
+    username: nextUsername,
+    displayName: nextDisplayName,
+    avatarUrl: nextAvatar,
+  };
 };
 
 const slice = createSlice({
@@ -17,15 +61,16 @@ const slice = createSlice({
       state.token = action.payload.token;
       persistToken(action.payload.token);
       if (Object.prototype.hasOwnProperty.call(action.payload, "user")) {
-        state.user = action.payload.user ?? null;
+        applyUserUpdate(state, action.payload.user ?? null);
       }
     },
     setUser(state, action: PayloadAction<AuthUser | null>) {
-      state.user = action.payload;
+      applyUserUpdate(state, action.payload);
     },
     clearAuth(state) {
       state.token = null;
       state.user = null;
+      state.avatarVersion = 0;
       clearToken();
     },
   },

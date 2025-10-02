@@ -1,9 +1,97 @@
 import { api } from "../lib/axios";
-import type { Post, Comment, FeedPage, CommentsPage } from "../types/post";
+import type { Post, Comment, FeedPage, CommentsPage, UserMini } from "../types/post";
+
+type FeedPagination = {
+  page?: number;
+  limit?: number;
+  total?: number;
+  totalPages?: number;
+};
+
+type FeedResponseRaw = {
+  items?: FeedPostRaw[];
+  data?: {
+    items?: FeedPostRaw[];
+    pagination?: FeedPagination;
+  };
+  pagination?: FeedPagination;
+  nextCursor?: string | null;
+};
+
+type FeedPostRaw = {
+  id?: number | string;
+  imageUrl?: string | null;
+  caption?: string | null;
+  createdAt?: string | null;
+  author?: {
+    id?: number | string;
+    username?: string | null;
+    name?: string | null;
+    displayName?: string | null;
+    avatarUrl?: string | null;
+  } | null;
+  likeCount?: number | null;
+  commentCount?: number | null;
+  saved?: boolean | null;
+  liked?: boolean | null;
+  likedByMe?: boolean | null;
+};
 
 export async function getFeed(cursor?: string, limit = 12) {
-  const { data } = await api.get("/feed", { params: { cursor, limit } });
-  return data as FeedPage;
+  let page = 1;
+  if (cursor) {
+    const parsed = Number(cursor);
+    if (Number.isFinite(parsed) && parsed > 0) page = Math.floor(parsed);
+  }
+
+  const { data } = await api.get("/feed", { params: { page, limit } });
+  const payload = data as FeedResponseRaw;
+
+  const rawItems = Array.isArray(payload.items)
+    ? payload.items
+    : Array.isArray(payload.data?.items)
+      ? payload.data.items
+      : [];
+
+  const items: Post[] = rawItems.map((item) => {
+    const authorRaw = item.author ?? {};
+    const author: UserMini = {
+      id: authorRaw?.id !== undefined && authorRaw?.id !== null ? String(authorRaw.id) : "",
+      username: authorRaw?.username?.trim() || "",
+      displayName: authorRaw?.displayName ?? authorRaw?.name ?? authorRaw?.username ?? null,
+      name: authorRaw?.name ?? null,
+      avatarUrl: authorRaw?.avatarUrl ?? null,
+    };
+
+    return {
+      id: item.id !== undefined && item.id !== null ? String(item.id) : "",
+      imageUrl: item.imageUrl ?? "",
+      caption: item.caption ?? "",
+      createdAt: item.createdAt ?? new Date().toISOString(),
+      author,
+      likeCount: item.likeCount ?? 0,
+      commentCount: item.commentCount ?? 0,
+      saved: item.saved ?? undefined,
+      liked: item.liked ?? item.likedByMe ?? undefined,
+    };
+  });
+
+  const rawNextCursor =
+    typeof payload.nextCursor === "string" && payload.nextCursor.trim() !== ""
+      ? payload.nextCursor
+      : undefined;
+
+  const pagination = payload.pagination ?? payload.data?.pagination;
+  const resolvedLimit = pagination?.limit ?? limit;
+  const nextPage =
+    pagination?.page && pagination?.totalPages && pagination.page < pagination.totalPages
+      ? String(pagination.page + 1)
+      : undefined;
+
+  const nextCursor = rawNextCursor ?? nextPage ?? (items.length === resolvedLimit ? String(page + 1) : undefined);
+
+  const pageResult: FeedPage = { items, nextCursor };
+  return pageResult;
 }
 
 export async function getPost(id: string) {
@@ -31,13 +119,134 @@ export async function unsavePost(id: string) {
   return data as { ok: true };
 }
 
+export async function createPost(payload: { image: File; caption?: string }) {
+  const formData = new FormData();
+  formData.append("image", payload.image);
+  if (payload.caption) formData.append("caption", payload.caption);
+
+  const { data } = await api.post(`/posts`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data as Post;
+}
+
+export async function deletePost(id: string) {
+  const { data } = await api.delete(`/posts/${id}`);
+  return data as { ok: true };
+}
+
+type CommentsNestedRaw = {
+  comments?: CommentRaw[];
+  items?: CommentRaw[];
+  pagination?: CommentsPaginationRaw;
+  nextCursor?: string | null;
+};
+
+type CommentsEnvelopeRaw = CommentsNestedRaw & {
+  data?: CommentsNestedRaw | null;
+  success?: boolean;
+  message?: string;
+};
+
+type CommentRaw = {
+  id?: number | string;
+  postId?: number | string;
+  body?: string | null;
+  comment?: string | null;
+  content?: string | null;
+  text?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  author?: UserMiniRaw | null;
+  user?: UserMiniRaw | null;
+};
+
+type CommentsPaginationRaw = {
+  page?: number | null;
+  limit?: number | null;
+  totalPages?: number | null;
+};
+
+type UserMiniRaw = {
+  id?: number | string | null;
+  username?: string | null;
+  name?: string | null;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  avatar?: string | null;
+};
+
 export async function getComments(postId: string, cursor?: string, limit = 10) {
-  const { data } = await api.get(`/posts/${postId}/comments`, { params: { cursor, limit } });
-  return data as CommentsPage;
+  let page = 1;
+  if (cursor) {
+    const parsed = Number(cursor);
+    if (Number.isFinite(parsed) && parsed > 0) page = Math.floor(parsed);
+  }
+
+  const { data } = await api.get(`/posts/${postId}/comments`, {
+    params: { page, limit },
+  });
+
+  const payload = (data as CommentsEnvelopeRaw) ?? {};
+  const nested = payload.data ?? null;
+
+  const candidates: CommentRaw[] = [
+    nested?.comments,
+    nested?.items,
+    payload.comments,
+    payload.items,
+  ].flatMap((arr) => (Array.isArray(arr) ? arr : []));
+
+  const parseAuthor = (author?: UserMiniRaw | null): UserMini => {
+    const base = author ?? {};
+    return {
+      id: base?.id !== undefined && base?.id !== null ? String(base.id) : "",
+      username: base?.username?.trim() || "",
+      displayName: base?.displayName ?? base?.name ?? base?.username ?? null,
+      name: base?.name ?? null,
+      avatarUrl: base?.avatarUrl ?? base?.avatar ?? null,
+    };
+  };
+
+  const items: Comment[] = candidates.map((item: CommentRaw) => {
+    const body = item?.body ?? item?.comment ?? item?.content ?? item?.text ?? "";
+    const authorRaw = (item?.author as UserMiniRaw | null | undefined) ?? (item?.user as UserMiniRaw | null | undefined);
+    const resolvedId =
+      item?.id !== undefined && item?.id !== null
+        ? String(item.id)
+        : typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `temp-${Date.now()}`;
+    return {
+      id: resolvedId,
+      postId: item?.postId !== undefined && item?.postId !== null ? String(item.postId) : postId,
+      body,
+      author: parseAuthor(authorRaw),
+      createdAt: item?.createdAt ?? item?.updatedAt ?? new Date().toISOString(),
+    };
+  });
+
+  const pagination = nested?.pagination ?? payload.pagination;
+  const nextPage =
+    pagination?.page && pagination?.totalPages && pagination.page < pagination.totalPages
+      ? String(pagination.page + 1)
+      : undefined;
+
+  const rawNextCursor = (nested?.nextCursor ?? payload.nextCursor)?.trim();
+  const nextCursor = rawNextCursor ? rawNextCursor : nextPage;
+
+  const pageResult: CommentsPage = { items, nextCursor };
+  return pageResult;
 }
 
 export async function addComment(postId: string, body: string) {
-  const { data } = await api.post(`/posts/${postId}/comments`, { body });
+  const payload = {
+    body,
+    text: body,
+    comment: body,
+  };
+
+  const { data } = await api.post(`/posts/${postId}/comments`, payload);
   return data as Comment;
 }
 
