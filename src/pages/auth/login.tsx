@@ -68,12 +68,12 @@ export default function Login() {
 
   const renderError = (field: keyof FormValues) =>
     formState.errors[field] && (
-      <p className="text-xs text-rose-400">{formState.errors[field]?.message}</p>
+      <p className="text-sm text-rose-400">{formState.errors[field]?.message}</p>
     );
 
   const inputBase =
-    "h-12 rounded-2xl border bg-white/[0.06] text-sm text-white placeholder:text-white/40 focus:ring-2";
-  const inputOk = "border-white/10 focus:border-violet-500 focus:ring-violet-500/70";
+    "h-12 rounded-2xl border bg-white/[0.06] text-md text-white placeholder:text-white/40 focus:ring-2";
+  const inputOk = "border-white/10 focus:border-violet-500 focus:ring-violet-500/70 ";
   const inputError = "border-rose-500 focus:border-rose-500 focus:ring-rose-500/50";
 
   return (
@@ -81,27 +81,32 @@ export default function Login() {
       <AuthBackdrop variant="login" />
 
       <div className="relative w-full max-w-md rounded-[32px] border border-white/10 bg-black/40 p-8 text-white shadow-[0_25px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-10">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <LogoGlyph className="h-10 w-10 text-white" />
-          <h1 className="text-2xl font-semibold">Welcome Back!</h1>
-          <p className="text-sm text-white/60">Sign in to continue to Sociality.</p>
+        <div className="flex flex-col items-center text-center">
+          <div className="flex gap-[11px] items-center">
+
+          <LogoGlyph className="h-[30px] w-[30px]  text-white" />
+          <h1 className="text-display-xs font-bold">Sociality</h1>
+          </div>
+
+          <h1 className="text-xl font-bold mt-6">Welcome Back!</h1>
+          
         </div>
 
         <form
-          className="mt-8 space-y-5"
+          className="mt-4 space-y-5"
           onSubmit={handleSubmit((v) => mutate.mutate(v))}
           noValidate
         >
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-white/70">
-              Email or Username
+            <label className="text-sm font-bold leading-[28px] tracking-wide text-white">
+              Email
             </label>
             <Input
               {...register("usernameOrEmail")}
               placeholder="you@example.com"
               aria-invalid={!!formState.errors.usernameOrEmail}
-              className={cn(
-                inputBase,
+              className={cn("!text-md",
+                inputBase, 
                 formState.errors.usernameOrEmail ? inputError : inputOk
               )}
             />
@@ -109,16 +114,16 @@ export default function Login() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-white/70">
+            <label className="text-sm font-bold leading-[28px] tracking-wide text-white">
               Password
             </label>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center ">
               <Input
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
                 placeholder="••••••••"
                 aria-invalid={!!formState.errors.password}
-                className={cn(
+                className={cn("!text-md",
                   inputBase,
                   formState.errors.password ? inputError : inputOk,
                   "pr-12"
@@ -139,15 +144,15 @@ export default function Login() {
           <Button
             type="submit"
             disabled={mutate.isPending}
-            className="h-12 w-full rounded-full bg-gradient-to-r from-[#5613A3] to-[#522BC8] text-sm font-semibold shadow-[0_10px_40px_rgba(86,19,163,0.35)] hover:from-[#6a1fd8] hover:to-[#5b3be0]"
+            className="mt-3 text-md font-bold h-12 w-full rounded-full bg-primary-300 hover:bg-gradient-to-r from-[#5613A3] to-[#522BC8] shadow-[0_10px_40px_rgba(86,19,163,0.35)] cursor-pointer hover:scale-105 hover:-translate-y-0.5"
           >
             {mutate.isPending ? "Signing in…" : "Login"}
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-white/60 sm:mt-8">
+        <p className="mt-4 text-center text-sm font-semibold text-white/60">
           Don’t have an account?{" "}
-          <Link to="/register" className="font-semibold text-violet-400 hover:text-violet-300">
+          <Link to="/register" className="font-bold text-primary-200 text-sm hover:text-violet-300 hover:scale-105 hover:font-extrabold">
             Register
           </Link>
         </p>

@@ -128,7 +128,7 @@
 
   /* Primary */
   --color-primary-100: #f6f9fe;
-  --color-primary-200: #d2e3ff;
+  --color-primary-200: #7f51f9;
   --color-primary-300: #6936f2; /* main brand purple */
 
   /* Accent */
@@ -140,10 +140,7 @@
   --color-base-white: #ffffff;
   --color-base-black: #000000;
 
-  /* ────────────────────────────── */
-  /* 🪩 RADIUS & SHADOWS          */
-  /* ────────────────────────────── */
-
+ 
   --radius-none: 0rem;
   --radius-xxs: 0.125rem; /* 2px */
   --radius-xs: 0.25rem; /* 4px */

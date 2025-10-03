@@ -25,5 +25,9 @@ export default defineConfig(({ mode }) => {
           },
         }
       : undefined,
+      define: {
+    // Suppress runtime.lastError warnings in development
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
+  },
   }
 })
