@@ -38,6 +38,11 @@ type FeedPostRaw = {
   bookmarked?: unknown;
   liked?: boolean | null;
   likedByMe?: boolean | null;
+  isLiked?: boolean | null;
+  isLikedByMe?: boolean | null;
+  liked_by_me?: unknown;
+  liked_byMe?: unknown;
+  liked_by_current_user?: unknown;
 };
 
 const resolveSavedFlag = (value: unknown): boolean | undefined => {
@@ -69,7 +74,15 @@ const mapPost = (item: FeedPostRaw): Post => {
     resolveSavedFlag(item.isSaved) ??
     resolveSavedFlag(item.bookmarked);
 
-  const likedResolved = resolveSavedFlag(item.liked ?? item.likedByMe);
+  const likedResolved = resolveSavedFlag(
+    item.liked ??
+      item.likedByMe ??
+      item.isLiked ??
+      item.isLikedByMe ??
+      (item as { liked_by_me?: unknown }).liked_by_me ??
+      (item as { liked_byMe?: unknown }).liked_byMe ??
+      (item as { liked_by_current_user?: unknown }).liked_by_current_user
+  );
 
   return {
     id: item.id !== undefined && item.id !== null ? String(item.id) : "",
@@ -125,14 +138,36 @@ export async function getPost(id: string) {
   return mapPost((data as FeedPostRaw) ?? {});
 }
 
+type LikeResponseRaw = {
+  liked?: unknown;
+  likeCount?: unknown;
+  data?: {
+    liked?: unknown;
+    likeCount?: unknown;
+  } | null;
+};
+
+const normalizeLikeResponse = (payload: LikeResponseRaw | undefined) => {
+  const source = payload?.data ?? payload ?? {};
+  const liked = resolveSavedFlag(source.liked);
+  const countRaw = source.likeCount;
+  const likeCount =
+    typeof countRaw === "number" && Number.isFinite(countRaw)
+      ? countRaw
+      : typeof countRaw === "string" && countRaw.trim() !== ""
+        ? Number(countRaw)
+        : undefined;
+  return { liked, likeCount } as { liked?: boolean; likeCount?: number };
+};
+
 export async function likePost(id: string) {
   const { data } = await api.post(`/posts/${id}/like`);
-  return data as { ok: true };
+  return normalizeLikeResponse(data as LikeResponseRaw | undefined);
 }
 
 export async function unlikePost(id: string) {
   const { data } = await api.delete(`/posts/${id}/like`);
-  return data as { ok: true };
+  return normalizeLikeResponse(data as LikeResponseRaw | undefined);
 }
 
 export async function savePost(id: string) {

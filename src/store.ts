@@ -1,10 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./features/auth/authSlice"
-import {type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import authReducer from "./features/auth/authSlice";
+import postReactionsReducer from "./features/posts/postReactionsSlice";
+import followStatusReducer from "./features/users/followStatusSlice";
+import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    postReactions: postReactionsReducer,
+    followStatus: followStatusReducer,
   },
 });
 

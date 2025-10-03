@@ -10,6 +10,17 @@ import { Smile, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import type { MeResponse } from "@/api/me";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 dayjs.extend(relativeTime);
 
@@ -53,6 +64,8 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
   const emojiPanelRef = useRef<HTMLDivElement | null>(null);
   const emojiTriggerRef = useRef<HTMLButtonElement | null>(null);
   const queryKey = ["comments", postId] as const;
+  const me = qc.getQueryData<MeResponse>(["me"]);
+  const [commentToDelete, setCommentToDelete] = useState<Comment | null>(null);
 
   const list = useInfiniteQuery({
     queryKey,
@@ -189,139 +202,178 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
     return `${items.length} Comments`;
   }, [items.length]);
 
-  return (
-    <section className="flex h-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-black/40 backdrop-blur">
-      <header className="flex items-center justify-between border-b border-white/10 px-6 pb-3 pt-5">
-        <div>
-          <h3 className="text-base font-semibold text-white">Comments</h3>
-          <p className="text-xs text-white/50">{commentCountCopy}</p>
-        </div>
-      </header>
+  const isDeleteDialogOpen = commentToDelete !== null;
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto px-6 py-5" aria-live="polite">
-          {items.length === 0 && !list.isFetching && (
-            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/30 py-12 text-center">
-              <p className="text-sm font-semibold text-white/80">No comments yet</p>
-              <p className="text-xs text-white/50">Start the conversation</p>
+  const handleConfirmDelete = () => {
+    if (!commentToDelete) return;
+    delM.mutate(commentToDelete.id);
+    setCommentToDelete(null);
+  };
+
+  return (
+    <>
+      <section className="flex h-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-black/40 backdrop-blur">
+        <header className="flex items-center justify-between border-b border-white/10 px-6 pb-3 pt-5">
+          <div>
+            <h3 className="text-base font-semibold text-white">Comments</h3>
+            <p className="text-xs text-white/50">{commentCountCopy}</p>
+          </div>
+        </header>
+
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 py-5" aria-live="polite">
+            {items.length === 0 && !list.isFetching && (
+              <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/30 py-12 text-center">
+                <p className="text-sm font-semibold text-white/80">No comments yet</p>
+                <p className="text-xs text-white/50">Start the conversation</p>
+              </div>
+            )}
+
+            <ul className="space-y-4">
+              {items.map((c) => {
+                if (!c?.author) return null;
+                const displayName = getUserDisplayName(c.author);
+                const username = c.author.username ?? "unknown";
+                const relativeTimeLabel = dayjs(c.createdAt).fromNow();
+
+                return (
+                  <li key={c.id} className="flex gap-3 rounded-2xl border border-white/5 bg-black/30 p-3">
+                    <img
+                      src={c.author.avatarUrl || AVATAR_FALLBACK_SRC}
+                      alt={displayName}
+                      className="h-9 w-9 rounded-full border border-white/10 object-cover"
+                      onError={handleAvatarError}
+                    />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between text-xs text-white/60">
+                        <div className="space-x-1">
+                          <span className="font-semibold text-white">{displayName}</span>
+                          <span>@{username}</span>
+                          <span>•</span>
+                          <span>{relativeTimeLabel}</span>
+                        </div>
+                        {(() => {
+                          const isMine = me
+                            ? c.author?.id === me.id || c.author?.username === me.username
+                            : c.author?.id === "me";
+                          if (!isMine) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setCommentToDelete(c)}
+                              disabled={delM.isPending}
+                              className="flex items-center gap-1 rounded-full px-2 py-1 text-[11px] text-white/50 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          );
+                        })()}
+                      </div>
+                      <p className="whitespace-pre-line break-words text-sm leading-relaxed text-white/90">
+                        {c.body}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div ref={sentinelRef} className="h-6" />
+            {list.isFetchingNextPage && <p className="text-center text-xs text-white/60">Loading more…</p>}
+          </div>
+
+          {actionsSlot && (
+            <div className="border-t border-white/10 bg-black/45 px-6 py-4">
+              {actionsSlot}
             </div>
           )}
 
-          <ul className="space-y-4">
-            {items.map((c) => {
-              if (!c?.author) return null;
-              const displayName = getUserDisplayName(c.author);
-              const username = c.author.username ?? "unknown";
-              const relativeTimeLabel = dayjs(c.createdAt).fromNow();
-
-              return (
-                <li key={c.id} className="flex gap-3 rounded-2xl border border-white/5 bg-black/30 p-3">
-                  <img
-                    src={c.author.avatarUrl || AVATAR_FALLBACK_SRC}
-                    alt={displayName}
-                    className="h-9 w-9 rounded-full border border-white/10 object-cover"
-                    onError={handleAvatarError}
-                  />
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-white/60">
-                      <div className="space-x-1">
-                        <span className="font-semibold text-white">{displayName}</span>
-                        <span>@{username}</span>
-                        <span>•</span>
-                        <span>{relativeTimeLabel}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => delM.mutate(c.id)}
-                        disabled={delM.isPending}
-                        className="flex items-center gap-1 rounded-full px-2 py-1 text-[11px] text-white/50 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
-                    </div>
-                    <p className="whitespace-pre-line break-words text-sm leading-relaxed text-white/90">
-                      {c.body}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          <div ref={sentinelRef} className="h-6" />
-          {list.isFetchingNextPage && <p className="text-center text-xs text-white/60">Loading more…</p>}
-        </div>
-
-        {actionsSlot && (
-          <div className="border-t border-white/10 bg-black/45 px-6 py-4">
-            {actionsSlot}
-          </div>
-        )}
-
-        <div className="border-t border-white/10 bg-black/55 px-5 py-5 shadow-inner shadow-black/40">
-          <form onSubmit={handleSubmit} className="flex items-end gap-3">
-            <div className="relative">
-              <button
-                type="button"
-                ref={emojiTriggerRef}
-                onClick={() => setShowEmojiPicker((prev) => !prev)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/70 transition hover:text-white"
-                aria-haspopup="dialog"
-                aria-expanded={showEmojiPicker}
-                aria-label={showEmojiPicker ? "Hide emoji picker" : "Show emoji picker"}
-              >
-                <Smile className="h-5 w-5" />
-              </button>
-
-              {showEmojiPicker && (
-                <div
-                  ref={emojiPanelRef}
-                  className="absolute bottom-full left-0 mb-3 w-48 rounded-2xl border border-white/10 bg-black/90 p-3 shadow-lg shadow-black/50"
+          <div className="border-t border-white/10 bg-black/55 px-5 py-5 shadow-inner shadow-black/40">
+            <form onSubmit={handleSubmit} className="flex items-end gap-3">
+              <div className="relative">
+                <button
+                  type="button"
+                  ref={emojiTriggerRef}
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/70 transition hover:text-white"
+                  aria-haspopup="dialog"
+                  aria-expanded={showEmojiPicker}
+                  aria-label={showEmojiPicker ? "Hide emoji picker" : "Show emoji picker"}
                 >
-                  <div className="grid grid-cols-5 gap-2 text-xl">
-                    {EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => handleEmojiInsert(emoji)}
-                        className="rounded-lg bg-white/5 py-1 text-center transition hover:bg-white/15"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                  <Smile className="h-5 w-5" />
+                </button>
+
+                {showEmojiPicker && (
+                  <div
+                    ref={emojiPanelRef}
+                    className="absolute bottom-full left-0 mb-3 w-48 rounded-2xl border border-white/10 bg-black/90 p-3 shadow-lg shadow-black/50"
+                  >
+                    <div className="grid grid-cols-5 gap-2 text-xl">
+                      {EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => handleEmojiInsert(emoji)}
+                          className="rounded-lg bg-white/5 py-1 text-center transition hover:bg-white/15"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <div className="flex-1">
-              <label htmlFor="comment-body" className="sr-only">
-                Comment
-              </label>
-              <input
-                id="comment-body"
-                {...bodyField}
-                ref={(el) => {
-                  bodyField.ref(el);
-                  composerRef.current = el;
-                }}
-                placeholder="Add a comment"
-                className="w-full rounded-full border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/90 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
-                autoComplete="off"
-              />
-            </div>
+              <div className="flex-1">
+                <label htmlFor="comment-body" className="sr-only">
+                  Comment
+                </label>
+                <input
+                  id="comment-body"
+                  {...bodyField}
+                  ref={(el) => {
+                    bodyField.ref(el);
+                    composerRef.current = el;
+                  }}
+                  placeholder="Add a comment"
+                  className="w-full rounded-full border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/90 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+                  autoComplete="off"
+                />
+              </div>
 
-            <button
-              type="submit"
-              className="rounded-full bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={addM.isPending || !bodyValue.trim()}
-            >
-              {addM.isPending ? "Posting…" : "Post"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="rounded-full bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={addM.isPending || !bodyValue.trim()}
+              >
+                {addM.isPending ? "Posting…" : "Post"}
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={(open) => !open && setCommentToDelete(null)}>
+        <AlertDialogContent className="bg-[#0b0b11] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              This action can’t be undone. Your comment will be removed from the post.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={delM.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={delM.isPending}
+              className="bg-rose-500 hover:bg-rose-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

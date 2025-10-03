@@ -1,71 +1,125 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { InfiniteData } from "@tanstack/react-query";
-import { Heart } from "lucide-react";
-import type { FeedPage, Post } from "../../types/post";
+import { useState, type SVGProps } from "react";
+import { cn } from "@/lib/utils";
 import { likePost, unlikePost } from "../../api/posts";
+import type { Post } from "../../types/post";
+import { Toggle } from "../ui/toggle";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { clearReaction, selectPostReaction, setReaction } from "@/features/posts/postReactionsSlice";
+import { toast } from "sonner";
 
-type FeedData = InfiniteData<FeedPage>;
+type LikeButtonVariant = "default" | "compact";
 
-export function LikeButton({ post }: { post: Post }) {
-  const qc = useQueryClient();
-  const keyFeed = ["feed"] as const;
-  const keyPost = ["post", post.id] as const;
+interface LikeButtonProps {
+  post: Post;
+  variant?: LikeButtonVariant;
+}
 
-  const mutate = useMutation<{ ok: true }, unknown, void, { prevFeed: FeedData | undefined; prevPost: Post | undefined }>({
-    mutationFn: async () => (post.liked ? unlikePost(post.id) : likePost(post.id)),
-    onMutate: async () => {
-      await Promise.all([qc.cancelQueries({ queryKey: keyFeed }), qc.cancelQueries({ queryKey: keyPost })]);
-      const prevFeed = qc.getQueryData<FeedData>(keyFeed);
-      const prevPost = qc.getQueryData<Post | undefined>(keyPost);
+export function LikeButton({ post, variant = "default" }: LikeButtonProps) {
+  const dispatch = useAppDispatch();
+  const reaction = useAppSelector((state) => selectPostReaction(state, post.id));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-      const toggle = (p: Post) => ({
-        ...p,
-        liked: !p.liked,
-        likeCount: p.likeCount + (p.liked ? -1 : 1),
+  const liked = reaction?.liked ?? post.liked ?? false;
+  const likeCount = reaction?.likeCount ?? post.likeCount ?? 0;
+
+  const isCompact = variant === "compact";
+  const toggleClass = cn(
+    "flex items-center rounded-full transition-colors select-none text-white/80 !bg-transparent hover:!bg-transparent hover:!text-white data-[state=on]:!text-[#B41759]",
+    isCompact ? "h-14 gap-4 px-5 text-lg font-semibold" : "h-16 gap-5 px-8 text-2xl font-semibold",
+  );
+  const iconSize = isCompact ? 24 : 28;
+
+  const applyReaction = (nextLiked: boolean, nextCount: number) => {
+    dispatch(
+      setReaction({
+        id: post.id,
+        reaction: {
+          liked: nextLiked,
+          likeCount: Math.max(0, nextCount),
+        },
+      }),
+    );
+  };
+
+  const revertReaction = (prevLiked: boolean, prevCount: number, hadOverride: boolean) => {
+    if (hadOverride) {
+      applyReaction(prevLiked, prevCount);
+    } else {
+      dispatch(clearReaction(post.id));
+    }
+  };
+
+  const handleToggle = async () => {
+    if (isSubmitting) return;
+
+    const previousLiked = liked;
+    const previousCount = likeCount;
+    const hadOverride = Boolean(reaction);
+
+    const nextLiked = !previousLiked;
+    const nextCount = Math.max(0, previousCount + (nextLiked ? 1 : -1));
+
+    applyReaction(nextLiked, nextCount);
+    setIsSubmitting(true);
+
+    try {
+      const response = nextLiked ? await likePost(post.id) : await unlikePost(post.id);
+      const serverLiked = typeof response?.liked === "boolean" ? response.liked : nextLiked;
+      const serverCount =
+        typeof response?.likeCount === "number" ? response.likeCount : nextCount;
+
+      applyReaction(serverLiked, serverCount);
+      toast.success(serverLiked ? "Liked" : "Unliked", {
+        description: serverLiked ? "You liked this post." : "You removed your like.",
       });
-
-      qc.setQueryData<FeedData>(keyFeed, (data) => {
-        if (!data) return data;
-        return {
-          ...data,
-          pages: data.pages.map((pg) => ({
-            ...pg,
-            items: pg.items.map((it: Post) => (it.id === post.id ? toggle(it) : it)),
-          })),
-        };
+    } catch {
+      revertReaction(previousLiked, previousCount, hadOverride);
+      toast.error("Unable to update like", {
+        description: "Please try again in a moment.",
       });
-
-      qc.setQueryData<Post | undefined>(keyPost, (it) => (it && it.id === post.id ? toggle(it) : it));
-
-      return { prevFeed, prevPost };
-    },
-    onError: (_e, _v, ctx) => {
-      if (!ctx) return;
-      if (ctx.prevFeed) qc.setQueryData(keyFeed, ctx.prevFeed);
-      if (ctx.prevPost) qc.setQueryData(keyPost, ctx.prevPost);
-    },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: keyFeed });
-      qc.invalidateQueries({ queryKey: keyPost });
-    },
-  });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <button
-      onClick={() => mutate.mutate()}
-      className={`flex items-center gap-1.5 text-sm font-medium transition-colors select-none ${
-        post.liked ? "text-pink-400" : "text-white/80 hover:text-white"
-      }`}
-      aria-pressed={post.liked}
-      aria-label={post.liked ? "Unlike" : "Like"}
+    <Toggle
+      pressed={liked}
+      onClick={handleToggle}
+      aria-label={liked ? "Unlike" : "Like"}
+      disabled={isSubmitting}
       type="button"
+      className={toggleClass}
     >
-      <Heart
-        className="h-5 w-5 transition"
-        strokeWidth={post.liked ? 0 : 2}
-        fill={post.liked ? "currentColor" : "none"}
+      <HeartIcon aria-hidden liked={liked} size={iconSize} />
+      <span>{likeCount}</span>
+    </Toggle>
+  );
+}
+
+type HeartIconProps = SVGProps<SVGSVGElement> & {
+  liked?: boolean;
+  size?: number;
+};
+
+function HeartIcon({ liked = false, size = 24, className, style, ...props }: HeartIconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={cn("shrink-0", className)}
+      style={{ width: size, height: size, ...style }}
+      {...props}
+    >
+      <path
+        d="M12.62 20.8096C12.28 20.9296 11.72 20.9296 11.38 20.8096C8.48 19.8196 2 15.6896 2 8.68961C2 5.59961 4.49 3.09961 7.56 3.09961C9.38 3.09961 10.99 3.97961 12 5.33961C13.01 3.97961 14.63 3.09961 16.44 3.09961C19.51 3.09961 22 5.59961 22 8.68961C22 15.6896 15.52 19.8196 12.62 20.8096Z"
+        fill={liked ? "#B41759" : "none"}
+        stroke={liked ? "#B41759" : "#FDFDFD"}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <span>{post.likeCount}</span>
-    </button>
+    </svg>
   );
 }

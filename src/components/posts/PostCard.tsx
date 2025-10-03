@@ -79,7 +79,7 @@ export function PostCard({ post }: { post: Post }) {
       <div className="p-3 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <LikeButton post={post} />
+            <LikeButton post={post} variant="compact" />
             <Link
               to={`/posts/${post.id}`}
               state={{ from: location.pathname, focusComments: true }}

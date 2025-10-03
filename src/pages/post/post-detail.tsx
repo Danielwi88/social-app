@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { deletePost, getPost } from "../../api/posts";
 import { LikeButton } from "../../components/posts/like-button";
 import { SaveButton } from "../../components/posts/save-button";
@@ -25,6 +25,7 @@ import { MessageCircle, Share2, X } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
+import type { FeedPage } from "@/types/post";
 dayjs.extend(relativeTime);
 
 export default function PostDetail() {
@@ -65,9 +66,21 @@ export default function PostDetail() {
   if (q.isError || !q.data) return <p className="text-rose-400">Post not found.</p>;
 
   const post = q.data;
-  const authorName = getUserDisplayName(post.author);
-  const postedRelative = dayjs(post.createdAt).fromNow();
-  const isOwner = user?.id && post.author?.id && String(user.id) === String(post.author.id);
+
+  const feedSnapshot = qc.getQueryData<InfiniteData<FeedPage>>(["feed"]);
+  let hydratedPost = post;
+  if (feedSnapshot) {
+    for (const page of feedSnapshot.pages ?? []) {
+      const match = page.items.find((item) => item.id === post.id);
+      if (match) {
+        hydratedPost = { ...post, liked: match.liked, likeCount: match.likeCount };
+        break;
+      }
+    }
+  }
+  const authorName = getUserDisplayName(hydratedPost.author);
+  const postedRelative = dayjs(hydratedPost.createdAt).fromNow();
+  const isOwner = user?.id && hydratedPost.author?.id && String(user.id) === String(hydratedPost.author.id);
 
   const handleDelete = () => setConfirmOpen(true);
 
@@ -77,8 +90,8 @@ export default function PostDetail() {
       return;
     }
 
-    const shareUrl = `${window.location.origin}/posts/${post.id}`;
-    const shareTitle = post.caption || `Check out ${authorName}'s post on Sociality`;
+    const shareUrl = `${window.location.origin}/posts/${hydratedPost.id}`;
+    const shareTitle = hydratedPost.caption || `Check out ${authorName}'s post on Sociality`;
 
     if (navigator.share) {
       try {
@@ -127,14 +140,15 @@ export default function PostDetail() {
   const actionsSlot = (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-6">
-        <LikeButton post={post} />
+        
+        <LikeButton post={hydratedPost} />
         <button
           type="button"
           onClick={handleCommentFocus}
           className="flex items-center gap-1.5 text-sm font-semibold text-white/80 transition hover:text-white"
         >
           <MessageCircle className="h-5 w-5" />
-          <span>{post.commentCount}</span>
+          <span>{hydratedPost.commentCount}</span>
         </button>
         <button
           type="button"
@@ -146,7 +160,7 @@ export default function PostDetail() {
         </button>
       </div>
       <div className="flex items-center gap-3 text-sm text-white/80">
-        <SaveButton post={post} />
+        <SaveButton post={hydratedPost} />
       </div>
     </div>
   );
@@ -164,21 +178,21 @@ export default function PostDetail() {
         </button>
 
         <div className="relative min-h-[280px] bg-black/60 sm:min-h-0">
-          <img src={post.imageUrl} alt={post.caption ?? "Post"} className="h-full w-full object-cover" />
+          <img src={hydratedPost.imageUrl} alt={hydratedPost.caption ?? "Post"} className="h-full w-full object-cover" />
         </div>
 
         <div className="flex max-h-[90vh] flex-col bg-[#0f0f19]/90 p-5 sm:p-6">
-          <header className="flex items-start justify-between gap-4">
+          <header className="flex items-start justify-between sm:mr-12 gap-4">
             <div className="flex items-center gap-3">
               <img
-                src={post.author?.avatarUrl || AVATAR_FALLBACK_SRC}
+                src={hydratedPost.author?.avatarUrl || AVATAR_FALLBACK_SRC}
                 alt={authorName}
                 className="h-11 w-11 rounded-full object-cover"
                 onError={handleAvatarError}
               />
               <div className="leading-tight">
                 <div className="font-semibold text-white">{authorName}</div>
-                <p className="text-xs text-white/60">@{post.author?.username}</p>
+                <p className="text-xs text-white/60">@{hydratedPost.author?.username}</p>
                 <p className="text-xs text-white/40">{postedRelative}</p>
               </div>
             </div>
@@ -193,13 +207,13 @@ export default function PostDetail() {
             )}
           </header>
 
-          {post.caption && (
-            <p className="mt-4 line-clamp-5 text-sm leading-relaxed text-white/90 sm:text-base">{post.caption}</p>
+          {hydratedPost.caption && (
+            <p className="mt-4 line-clamp-5 text-sm leading-relaxed text-white/90 sm:text-base">{hydratedPost.caption}</p>
           )}
 
           <div className="mt-6 flex flex-1 flex-col overflow-hidden">
             <CommentsPanel
-              postId={post.id}
+              postId={hydratedPost.id}
               autoFocusComposer={Boolean(locationState?.focusComments)}
               actionsSlot={actionsSlot}
             />

@@ -47,6 +47,121 @@ export type SearchUsersResult = {
   };
 };
 
+type FollowUserRaw = {
+  id?: number | string | null;
+  username?: string | null;
+  name?: string | null;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  profilePicture?: string | null;
+  imageUrl?: string | null;
+  counts?: {
+    post?: number | null;
+    posts?: number | null;
+    followers?: number | null;
+    following?: number | null;
+    likes?: number | null;
+  } | null;
+  posts?: number | null;
+  followers?: number | null;
+  following?: number | null;
+  likes?: number | null;
+  isFollowedByMe?: boolean | null;
+  isFollowing?: boolean | null;
+  isMe?: boolean | null;
+};
+
+type FollowUsersEnvelopeRaw = {
+  users?: FollowUserRaw[];
+  items?: FollowUserRaw[];
+  followers?: FollowUserRaw[];
+  following?: FollowUserRaw[];
+  data?: {
+    users?: FollowUserRaw[];
+    items?: FollowUserRaw[];
+    followers?: FollowUserRaw[];
+    following?: FollowUserRaw[];
+  } | null;
+};
+
+const sanitizeAvatar = (url?: string | null) => {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("/")) return trimmed;
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^https?:\/\//i, "").replace(/^\/+/, "")}`;
+};
+
+const toNumberOrZero = (value: number | null | undefined) =>
+  typeof value === "number" && Number.isFinite(value) ? value : 0;
+
+const extractFollowUsers = (envelope: FollowUsersEnvelopeRaw | undefined): FollowUserRaw[] => {
+  if (!envelope) return [];
+  const sources: Array<FollowUserRaw[] | undefined> = [
+    envelope.users,
+    envelope.items,
+    envelope.followers,
+    envelope.following,
+    envelope.data?.users,
+    envelope.data?.items,
+    envelope.data?.followers,
+    envelope.data?.following,
+  ];
+
+  for (const source of sources) {
+    if (Array.isArray(source) && source.length > 0) return source;
+  }
+
+  return [];
+};
+
+const mapFollowUsers = (
+  payload: unknown,
+  options: { defaultIsFollowing?: boolean } = {}
+): PublicUser[] => {
+  const envelope = (payload ?? undefined) as FollowUsersEnvelopeRaw | undefined;
+  const list = extractFollowUsers(envelope);
+
+  return list.map((user) => {
+    const id = user?.id !== undefined && user?.id !== null ? String(user.id) : "";
+    const username = user?.username?.trim() ?? "";
+    const displayName = user?.displayName?.trim() || user?.name?.trim() || username;
+
+    const counts = user?.counts ?? null;
+    const posts = toNumberOrZero(
+      user?.posts ?? counts?.post ?? counts?.posts
+    );
+    const followers = toNumberOrZero(
+      user?.followers ?? counts?.followers
+    );
+    const following = toNumberOrZero(
+      user?.following ?? counts?.following
+    );
+    const likes = toNumberOrZero(user?.likes ?? counts?.likes);
+
+    const resolvedFollowing =
+      user?.isFollowing ?? user?.isFollowedByMe ?? options.defaultIsFollowing;
+
+    return {
+      id,
+      username,
+      displayName,
+      name: user?.name ?? null,
+      avatarUrl:
+        sanitizeAvatar(user?.avatarUrl ?? user?.profilePicture ?? user?.imageUrl) ?? null,
+      posts,
+      followers,
+      following,
+      likes,
+      isFollowing:
+        typeof resolvedFollowing === "boolean" ? resolvedFollowing : undefined,
+      isMe: typeof user?.isMe === "boolean" ? user.isMe : undefined,
+    } satisfies PublicUser;
+  });
+};
+
 /** Public data */
 export async function getPublicUser(username: string): Promise<PublicUser> {
   const { data } = await api.get(`/users/${username}`);
@@ -205,21 +320,10 @@ export async function getFollowers(username: string) {
 
 export async function getUserFollowers(username: string) {
   try {
-    const response = await api.get(`/users/${username}/followers?page=1&limit=20`);
-    const users = response.data?.users || [];
-    if (!Array.isArray(users)) return [];
-    return users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
-      id: String(user.id),
-      username: user.username,
-      displayName: user.name || user.username,
-      name: user.name,
-      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
-      posts: 0,
-      followers: 0,
-      following: 0,
-      likes: 0,
-      isFollowing: user.isFollowedByMe
-    }));
+    const { data } = await api.get(`/users/${username}/followers`, {
+      params: { page: 1, limit: 20 },
+    });
+    return mapFollowUsers(data);
   } catch {
     return [];
   }
@@ -227,21 +331,10 @@ export async function getUserFollowers(username: string) {
 
 export async function getUserFollowing(username: string) {
   try {
-    const response = await api.get(`/users/${username}/following?page=1&limit=20`);
-    const users = response.data?.users || [];
-    if (!Array.isArray(users)) return [];
-    return users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
-      id: String(user.id),
-      username: user.username,
-      displayName: user.name || user.username,
-      name: user.name,
-      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
-      posts: 0,
-      followers: 0,
-      following: 0,
-      likes: 0,
-      isFollowing: user.isFollowedByMe
-    }));
+    const { data } = await api.get(`/users/${username}/following`, {
+      params: { page: 1, limit: 20 },
+    });
+    return mapFollowUsers(data);
   } catch {
     return [];
   }
@@ -252,50 +345,20 @@ export async function getFollowing(username: string) {
 }
 export async function getMyFollowers() {
   try {
-    const response = await api.get(`/me/followers?page=1&limit=20`);
-    console.log('Full API response:', response.data);
-    const users = response.data?.users || [];
-    console.log('Extracted users:', users);
-    if (!Array.isArray(users)) {
-      console.log('Users is not an array:', typeof users);
-      return [];
-    }
-    const mapped = users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
-      id: String(user.id),
-      username: user.username,
-      displayName: user.name || user.username,
-      name: user.name,
-      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
-      posts: 0,
-      followers: 0,
-      following: 0,
-      likes: 0,
-      isFollowing: user.isFollowedByMe
-    }));
-    console.log('Mapped users:', mapped);
-    return mapped;
-  } catch (error) {
-    console.log('API error:', error);
+    const { data } = await api.get(`/me/followers`, {
+      params: { page: 1, limit: 20 },
+    });
+    return mapFollowUsers(data, { defaultIsFollowing: false });
+  } catch {
     return [];
   }
 }
 export async function getMyFollowing() {
   try {
-    const response = await api.get(`/me/following?page=1&limit=20`);
-    const users = response.data?.users || [];
-    if (!Array.isArray(users)) return [];
-    return users.map((user: { id: number; username: string; name: string; avatarUrl: string; isFollowedByMe: boolean }) => ({
-      id: String(user.id),
-      username: user.username,
-      displayName: user.name || user.username,
-      name: user.name,
-      avatarUrl: user.avatarUrl?.includes('cdn.site.com') ? null : user.avatarUrl,
-      posts: 0,
-      followers: 0,
-      following: 0,
-      likes: 0,
-      isFollowing: user.isFollowedByMe
-    }));
+    const { data } = await api.get(`/me/following`, {
+      params: { page: 1, limit: 20 },
+    });
+    return mapFollowUsers(data, { defaultIsFollowing: true });
   } catch {
     return [];
   }

@@ -3,7 +3,7 @@ export function AuthBackdrop({ variant }: { variant?: "login" | "register" }) {
     <div className="pointer-events-none absolute inset-0">
       <div className="absolute inset-0 bg-black" />
       <svg
-        className="absolute bottom-[-45%] left-1/2 h-[120%] w-[160%] -translate-x-1/2 sm:bottom-[-20%]"
+        className="absolute bottom-[-40%] left-1/2 h-[120%] w-[160%] -translate-x-1/2 sm:bottom-[-20%]"
         viewBox="0 0 1440 874"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

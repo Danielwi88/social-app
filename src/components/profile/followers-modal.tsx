@@ -25,8 +25,6 @@ export function FollowersModal({ username, isOpen, onClose, isMe = false }: Foll
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  console.log('FollowersModal Debug:', { isMe, followers, isLoading, isError });
-
   if (!isOpen) return null;
 
   return (
