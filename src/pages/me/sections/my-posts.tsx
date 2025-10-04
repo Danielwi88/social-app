@@ -20,13 +20,13 @@ export default function MyPosts({ authorId }: MyPostsProps) {
   if (!q.data || q.data.length === 0)
     return (
       <div className="flex flex-col items-center rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-16 text-center shadow-[0_0_40px_rgba(124,58,237,0.05)]">
-        <h3 className="text-2xl font-semibold">Your story starts here</h3>
-        <p className="mt-3 max-w-md text-sm text-white/60">
+        <h3 className="text-lg font-bold text-neutral-25 leading-[32px]">Your story starts here</h3>
+        <p className="max-w-md text-md font-regular text-neutral-400 leading-[30px]">
           Share your first post and let the world see your moments, passions, and memories. Make this space truly yours.
         </p>
         <Button
           asChild
-          className="mt-8 h-11 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 text-sm font-semibold text-white shadow-lg transition hover:from-violet-400 hover:to-fuchsia-500"
+          className="mt-6 h-10 sm:h-12 rounded-full bg-primary-300 text-md font-bold text-white shadow-lg transition hover:bg-gradient-custom hover:-translata-y-0.5 hover:scale-105 px-[49px]"
         >
           <Link to="/posts/new">Upload My First Post</Link>
         </Button>

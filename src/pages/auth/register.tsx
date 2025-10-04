@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { register as registerApi } from '../../api/auth';
 import { useAppDispatch } from '../../store';
 import {
@@ -83,9 +84,22 @@ export default function Register() {
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
+      const defaultDescription = 'Make sure email and username are unique.';
+      if (isAxiosError(error)) {
+        const responseMessage =
+          (Array.isArray(error.response?.data?.data) &&
+            error.response?.data?.data[0]?.msg) ||
+          error.response?.data?.message;
+
+        toast.error('Registration failed', {
+          description: responseMessage ?? defaultDescription,
+        });
+        return;
+      }
+
       toast.error('Registration failed', {
-        description: 'Make sure email and username are unique.',
+        description: defaultDescription,
       });
     },
   });
@@ -128,6 +142,7 @@ export default function Register() {
               <Input
                 {...register('name')}
                 placeholder='John Doe'
+                autoComplete='name'
                 aria-invalid={!!formState.errors.name}
                 className={cn("text-sm",
                   inputBase,
@@ -144,6 +159,7 @@ export default function Register() {
               <Input
                 {...register('username')}
                 placeholder='johndoe'
+                autoComplete='username'
                 aria-invalid={!!formState.errors.username}
                 className={cn(
                   inputBase,
@@ -161,6 +177,7 @@ export default function Register() {
                 type='email'
                 {...register('email')}
                 placeholder='you@example.com'
+                autoComplete='email'
                 aria-invalid={!!formState.errors.email}
                 className={cn(
                   inputBase,
@@ -177,6 +194,7 @@ export default function Register() {
               <Input
                 {...register('phone')}
                 placeholder='0812345678'
+                autoComplete='tel'
                 aria-invalid={!!formState.errors.phone}
                 className={cn(
                   inputBase,
@@ -194,6 +212,7 @@ export default function Register() {
                 type={showPassword ? 'text' : 'password'}
                 {...register('password')}
                 placeholder='••••••••'
+                autoComplete='new-password'
                 aria-invalid={!!formState.errors.password}
                 className={cn(
                   inputBase,
@@ -226,6 +245,7 @@ export default function Register() {
                 type={showConfirmPassword ? 'text' : 'password'}
                 {...register('confirmPassword')}
                 placeholder='Confirm your password'
+                autoComplete='new-password'
                 aria-invalid={!!formState.errors.confirmPassword}
                 className={cn(
                   inputBase,

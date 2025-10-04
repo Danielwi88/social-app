@@ -27,6 +27,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@utility bg-gradient-custom {
+  background-image: linear-gradient(to right, var(--color-violet-500), var(--color-fuchsia-500));
+}
 @theme {
    --font-sans: 'SF Pro Display', ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
@@ -277,3 +280,4 @@
 body {
   font-family: 'SF Pro Display', sans-serif;
 }
+

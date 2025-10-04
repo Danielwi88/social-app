@@ -1,19 +1,19 @@
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2 } from "lucide-react";
 import { getMe, updateMe, type MeResponse, type UpdateMePayload } from "@/api/me";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAppDispatch, useAppSelector } from "@/store";
 import { selectAuth, setUser } from "@/features/auth/authSlice";
-import { toast } from "sonner";
-import { isAxiosError } from "axios";
 import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const schema = z.object({
   name: z.string().min(1, "Required").max(80, "Max 80 chars"),
@@ -233,13 +233,7 @@ export default function EditProfile() {
     setValue("avatarUrl", "", { shouldDirty: true, shouldValidate: false });
   };
 
-  const removeSelectedImage = () => {
-    setAvatarFile(null);
-    setImageError(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    setValue("avatarUrl", me.avatarUrl ?? "", { shouldDirty: false, shouldValidate: false });
-    setAvatarPreview(me.avatarUrl ?? null);
-  };
+
 
   const onSubmit = handleSubmit((values) => {
     mutation.mutate(values);
@@ -251,49 +245,38 @@ export default function EditProfile() {
   const okInput = "border-white/15";
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-6 px-4 pb-24 pt-8">
+    <div className="mx-auto flex min-h-dvh max-w-[800px] flex-col gap-6 px-0 pb-24 pt-8">
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm font-medium text-white/70 transition hover:text-white"
+        className="flex items-center gap-2 text-md sm:text-display-xs font-bold text-neutral-25 transition hover:text-white"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="size-6 sm:size-8 text-neutral-25" />
         Edit Profile
       </button>
 
-      <div className="rounded-[32px] border border-white/10 bg-[#09090f]/90 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur md:p-10">
-        <div className="flex flex-col items-center gap-4 border-b border-white/10 pb-10 text-center md:flex-row md:items-center md:gap-8 md:text-left">
+      <div className="flex w-full flex-col gap-8  border border-white/10 bg-[#09090f]/90 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur md:flex-row md:items-start md:gap-12 md:p-10">
+        <div className="flex w-full flex-col items-center gap-4 border-b border-white/10 pb-10 text-center md:w-auto md:border-b-0 md:border-r md:border-white/10 md:pb-0  md:text-left">
           <div className="relative">
             <img
               src={avatarPreview || AVATAR_FALLBACK_SRC}
               alt={me.displayName}
-              className="h-28 w-28 rounded-full border border-white/15 object-cover shadow-[0_12px_45px_rgba(0,0,0,0.45)] md:h-32 md:w-32"
+              className="h-20 w-20 rounded-full border border-white/15 object-cover shadow-[0_12px_45px_rgba(0,0,0,0.45)] md:h-[131px] md:w-[131px]"
               onError={handleAvatarError}
             />
           </div>
           <div className="flex flex-col items-center gap-3 md:items-start">
-            <div>
-              <p className="text-xl font-semibold text-white md:text-2xl">{me.displayName}</p>
-              <p className="text-sm text-white/60">@{me.username}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
+            
+            <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <Button
                 type="button"
                 variant="secondary"
-                className="rounded-full bg-white/[0.08] px-4 py-2 text-sm font-semibold text-white hover:bg-white/[0.16]"
+                className="rounded-full bg-white/[0.08] px-4 py-2 text-sm sm:text-md font-bold text-white hover:bg-white/[0.16]"
                 onClick={() => fileInputRef.current?.click()}
               >
                 Change Photo
               </Button>
-              {avatarFile && (
-                <button
-                  type="button"
-                  onClick={removeSelectedImage}
-                  className="text-sm font-medium text-rose-300 transition hover:text-rose-200"
-                >
-                  Remove
-                </button>
-              )}
+              
             </div>
             {imageError && <p className="text-xs text-rose-400">{imageError}</p>}
             <Input
@@ -306,10 +289,14 @@ export default function EditProfile() {
           </div>
         </div>
 
-        <form className="mt-10 space-y-6" onSubmit={onSubmit} noValidate>
+        <form
+          className="mt-10 w-full flex-1 min-w-0 space-y-6 md:mt-0"
+          onSubmit={onSubmit}
+          noValidate
+        >
           <div className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-white/60">Name</label>
+              <label className="text-sm font-bold tracking-wide text-neutral-25">Name</label>
               <Input
                 placeholder="Your name"
                 {...register("name")}
@@ -322,7 +309,7 @@ export default function EditProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-white/60">Username</label>
+              <label className="text-sm font-bold tracking-wide text-neutral-25">Username</label>
               <Input
                 placeholder="username"
                 {...register("username")}
@@ -335,18 +322,18 @@ export default function EditProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-white/60">Email</label>
+              <label className="text-sm font-bold tracking-wide text-neutral-25">Email</label>
               <Input
                 value={me.email ?? ""}
                 readOnly
                 disabled
                 className="h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm text-white/60"
               />
-              <p className="text-xs text-white/40">Email is managed by Sociality support.</p>
+              
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-white/60">Number Phone</label>
+              <label className="text-sm font-bold tracking-wide text-neutral-25"> Phone Number</label>
               <Input
                 placeholder="0812345678"
                 {...register("phone")}
@@ -359,14 +346,14 @@ export default function EditProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-white/60">Avatar URL (optional)</label>
+              <label className="text-sm font-bold tracking-wide text-neutral-25">Avatar URL (optional)</label>
               <Input
                 placeholder="https://cdn.example.com/avatar.jpg"
                 {...register("avatarUrl")}
                 aria-invalid={!!formState.errors.avatarUrl}
                 className={cn(inputBase, formState.errors.avatarUrl ? errorInput : okInput)}
               />
-              <p className="text-xs text-white/40">Paste an image link if you prefer using a URL.</p>
+             
               {formState.errors.avatarUrl && (
                 <p className="text-xs text-rose-400">{formState.errors.avatarUrl.message}</p>
               )}
@@ -375,7 +362,7 @@ export default function EditProfile() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-white/60">
-              <label className="font-semibold uppercase tracking-wide">Bio</label>
+              <label className="text-sm font-bold tracking-wide text-neutral-25">Bio</label>
               <span>
                 {bioValue.length}
                 /240
@@ -396,27 +383,13 @@ export default function EditProfile() {
             )}
           </div>
 
-          <div className="space-y-3 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/70">
-            <p className="font-medium text-white">Profile tips</p>
-            <p>
-              Use a friendly headshot, keep your bio concise, and make sure your username
-              reflects who you are on Sociality.
-            </p>
-          </div>
+          
 
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-11 rounded-full border border-transparent text-white/70 hover:text-white"
-              onClick={() => navigate(-1)}
-              disabled={mutation.isPending}
-            >
-              Cancel
-            </Button>
+            
             <Button
               type="submit"
-              className="h-11 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-8 text-sm font-semibold text-white shadow-[0_12px_35px_rgba(168,85,247,0.35)] transition hover:from-violet-400 hover:to-fuchsia-500"
+              className="h-10 sm:h-12 w-full rounded-full bg-primary-300   px-8 text-sm sm:text-md font-bold text-white shadow-[0_12px_35px_rgba(168,85,247,0.35)] transition  hover:bg-violet-500 hover:scale-105 hover:-translate-y-0.5"
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (

@@ -283,7 +283,7 @@ export function AppLayout() {
             <div className="relative hidden md:block" ref={accountMenuRef}>
               <button
                 type="button"
-                className="flex items-center gap-3 rounded-full  bg-black px-3 py-2 text-white "
+                className="flex items-center gap-3 rounded-full  bg-black px-3 py-2 text-white cursor-pointer"
                 onClick={() => setAccountMenuOpen((prev) => !prev)}
               >
                 <span className="relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center overflow-hidden rounded-full bg-white/20">

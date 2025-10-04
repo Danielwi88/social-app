@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,19 @@ type FollowButtonProps = {
   disabled?: boolean;
 };
 
+type FollowResponse = Awaited<ReturnType<typeof follow>>;
+
+type FollowMutationVariables = {
+  action: "follow" | "unfollow";
+  previous?: boolean;
+};
+
+type FollowMutationContext = {
+  prevProfile?: unknown;
+  previous: boolean;
+  action: FollowMutationVariables["action"];
+};
+
 export function FollowButton({
   username,
   queryKeyProfile,
@@ -32,6 +45,29 @@ export function FollowButton({
   const qc = useQueryClient();
   const dispatch = useAppDispatch();
   const storedStatus = useAppSelector((state) => selectFollowStatus(state, username));
+  const feedRefreshTimeoutRef = useRef<number | null>(null);
+
+  const scheduleFeedRefresh = () => {
+    const invalidateFeed = () => {
+      qc.invalidateQueries({
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "feed",
+      });
+    };
+
+    if (typeof window === "undefined") {
+      invalidateFeed();
+      return;
+    }
+
+    if (feedRefreshTimeoutRef.current !== null) {
+      window.clearTimeout(feedRefreshTimeoutRef.current);
+    }
+
+    feedRefreshTimeoutRef.current = window.setTimeout(() => {
+      invalidateFeed();
+      feedRefreshTimeoutRef.current = null;
+    }, 800);
+  };
 
   const resolvedIsFollowing =
     typeof storedStatus === "boolean"
@@ -47,17 +83,28 @@ export function FollowButton({
     }
   }, [dispatch, isFollowing, storedStatus, username]);
 
-  const mutation = useMutation({
-    mutationFn: async () => (resolvedIsFollowing ? unfollow(username) : follow(username)),
-    onMutate: async () => {
+  useEffect(() => () => {
+    if (typeof window === "undefined") return;
+    if (feedRefreshTimeoutRef.current !== null) {
+      window.clearTimeout(feedRefreshTimeoutRef.current);
+    }
+  }, []);
+
+  const mutation = useMutation<FollowResponse, unknown, FollowMutationVariables, FollowMutationContext>({
+    mutationFn: async ({ action }: FollowMutationVariables) =>
+      action === "unfollow" ? unfollow(username) : follow(username),
+    onMutate: async (variables) => {
+      const action = variables?.action ?? (resolvedIsFollowing ? "unfollow" : "follow");
+      const previous = variables?.previous ?? resolvedIsFollowing;
+      const next = action === "follow";
+
       if (queryKeyProfile) {
         await qc.cancelQueries({ queryKey: queryKeyProfile });
       }
 
-      const previous = resolvedIsFollowing;
-      const delta = previous ? -1 : 1;
+      const delta = action === "unfollow" ? -1 : 1;
 
-      dispatch(setFollowStatus({ username, isFollowing: !previous }));
+      dispatch(setFollowStatus({ username, isFollowing: next }));
 
       const prevProfile = queryKeyProfile ? qc.getQueryData(queryKeyProfile) : undefined;
 
@@ -65,7 +112,7 @@ export function FollowButton({
         const profile = prevProfile as PublicUser;
         qc.setQueryData<PublicUser>(queryKeyProfile!, {
           ...profile,
-          isFollowing: !previous,
+          isFollowing: next,
           followers: Math.max(0, (profile.followers ?? 0) + delta),
         });
       }
@@ -86,7 +133,7 @@ export function FollowButton({
                 user.username === username
                   ? {
                       ...user,
-                      isFollowing: !previous,
+                      isFollowing: next,
                       followers: Math.max(0, (user.followers ?? 0) + delta),
                     }
                   : user
@@ -103,7 +150,7 @@ export function FollowButton({
                 user.username === username
                   ? {
                       ...user,
-                      isFollowing: !previous,
+                      isFollowing: next,
                       followers: Math.max(0, (user.followers ?? 0) + delta),
                     }
                   : user
@@ -119,11 +166,12 @@ export function FollowButton({
       patchList("my-followers");
       patchList("my-following");
 
-      return { prevProfile, previous };
+      return { prevProfile, previous, action } satisfies FollowMutationContext;
     },
-    onError: (_error, _variables, context) => {
-      if (context?.previous !== undefined) {
-        dispatch(setFollowStatus({ username, isFollowing: context.previous }));
+    onError: (_error, variables, context) => {
+      const previous = context?.previous ?? variables?.previous ?? resolvedIsFollowing;
+      if (typeof previous === "boolean") {
+        dispatch(setFollowStatus({ username, isFollowing: previous }));
       }
       if (queryKeyProfile && context?.prevProfile) {
         qc.setQueryData(queryKeyProfile, context.prevProfile);
@@ -132,15 +180,18 @@ export function FollowButton({
         description: "Please try again in a moment.",
       });
     },
-    onSuccess: (_data, _variables, context) => {
-      const previous = context?.previous ?? resolvedIsFollowing;
-      const nowFollowing = !previous;
+    onSuccess: (data, variables, context) => {
+      const action = variables?.action ?? context?.action ?? (resolvedIsFollowing ? "unfollow" : "follow");
+      const fallback = action === "follow";
+      const nowFollowing = typeof data?.following === "boolean" ? data.following : fallback;
+
       dispatch(setFollowStatus({ username, isFollowing: nowFollowing }));
-      toast.success(nowFollowing ? "Unfollowed" : "Followed", {
+      toast.success(nowFollowing ? "Followed" : "Unfollowed", {
         description: nowFollowing
-          ? `You’ve unfollowed @${username}.`
-          : `You’re now following @${username}.`,
+          ? `You’re now following @${username}.`
+          : `You’ve unfollowed @${username}.`,
       });
+      scheduleFeedRefresh();
     },
     onSettled: () => {
       if (queryKeyProfile) {
@@ -160,7 +211,7 @@ export function FollowButton({
       ? "h-9 border border-white/20 bg-white/[0.08] px-4 text-xs hover:bg-white/[0.16]"
       : resolvedIsFollowing
         ? "h-11 border border-white/15 bg-white/[0.05] px-7 text-white hover:bg-white/[0.12]"
-        : "h-11 bg-violet-600 px-8 text-white hover:bg-violet-500",
+        : "h-11 bg-primary-300 px-8 text-white shadow-[0_10px_40px_rgba(86,19,163,0.35)] hover:bg-primary-300/90",
     className
   );
 
@@ -172,7 +223,9 @@ export function FollowButton({
       type="button"
       onClick={() => {
         if (disabled) return;
-        mutation.mutate();
+        const previous = resolvedIsFollowing;
+        const action = previous ? "unfollow" : "follow";
+        mutation.mutate({ action, previous });
       }}
       className={buttonClasses}
       disabled={disabled || mutation.isPending}
