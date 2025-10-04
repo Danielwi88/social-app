@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutGrid, Bookmark, Send } from "lucide-react";
+import { Bookmark, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { getMe } from "../../api/me";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import MyPosts from "@/pages/me/sections/my-posts";
-import MySaved from "@/pages/me/sections/my-saved";
-import { ProfileHeader } from "@/components/profile/profile-header";
+import { MobileFloatingNav } from "@/components/navigation/mobile-floating-nav";
 import { FollowersModal } from "@/components/profile/followers-modal";
 import { FollowingModal } from "@/components/profile/following-modal";
+import { ProfileHeader } from "@/components/profile/profile-header";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MyPosts from "@/pages/me/sections/my-posts";
+import MySaved from "@/pages/me/sections/my-saved";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { MobileFloatingNav } from "@/components/navigation/mobile-floating-nav";
+import { getMe } from "../../api/me";
 
 export default function Me() {
   const location = useLocation();
@@ -78,7 +78,7 @@ export default function Me() {
   };
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-28 pt-6 md:px-0">
+    <div className="mx-auto flex max-w-[812px] flex-col gap-8 px-4 pb-28 pt-6 md:px-0">
       <ProfileHeader
         displayName={me.displayName}
         username={me.username}
@@ -94,7 +94,7 @@ export default function Me() {
         primaryAction={
           <Button
             asChild
-            className="h-11 rounded-full border border-white/15 bg-white/[0.08] px-6 text-sm font-semibold text-white shadow hover:bg-white/[0.14]"
+            className="h-10 sm:h-12 rounded-full border border-neutral-900 bg-black px-6 text-sm sm:text-md font-semibold text-white shadow hover:bg-white/[0.14]"
           >
             <Link to="/me/edit">Edit Profile</Link>
           </Button>
@@ -103,10 +103,10 @@ export default function Me() {
           <Button
             type="button"
             onClick={shareProfile}
-            className="h-11 w-11 rounded-full border border-white/15 bg-white/[0.06] p-0 text-white shadow hover:bg-white/[0.12]"
+            className="h-10 w-10 sm:w-12 sm:h-12 rounded-full border border-neutral-900 bg-black p-0 text-white shadow hover:bg-white/[0.12]"
             aria-label="Share profile"
           >
-            <Send className="size-4" />
+            <Send className="size-5 sm:size-6" />
           </Button>
         }
       />
@@ -117,14 +117,15 @@ export default function Me() {
             value="gallery"
             className="relative flex h-12 flex-none items-center gap-2 rounded-none border-none bg-transparent px-1 text-sm font-medium text-white/60 transition data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:-bottom-[1px] data-[state=active]:after:left-0 data-[state=active]:after:h-[2px] data-[state=active]:after:w-full data-[state=active]:after:bg-white"
           >
-            <LayoutGrid className="size-4" />
+            
+            <img src="/grid-3.svg" alt="grid" width='20' height='20' className="sm:size-6" />
             Gallery
           </TabsTrigger>
           <TabsTrigger
             value="saved"
             className="relative flex h-12 flex-none items-center gap-2 rounded-none border-none bg-transparent px-1 text-sm font-medium text-white/60 transition data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:-bottom-[1px] data-[state=active]:after:left-0 data-[state=active]:after:h-[2px] data-[state=active]:after:w-full data-[state=active]:after:bg-white"
           >
-            <Bookmark className="size-4" />
+            <Bookmark className="size-5 sm:size-6" />
             Saved
           </TabsTrigger>
         </TabsList>
