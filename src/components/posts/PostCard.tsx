@@ -56,8 +56,8 @@ export function PostCard({ post }: { post: Post }) {
   };
 
   return (
-    <article className='rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden'>
-      <header className='flex items-center gap-3 p-3'>
+    <article className='rounded-md max-w-[600px] bg-black border-b border-neutral-900 pb-1 sm:pb-5 sm:mb-5 overflow-hidden'>
+      <header className='flex items-center gap-2 sm:gap-3 py-3'>
         <Link
           to={profileHref}
           className='inline-flex'
@@ -66,18 +66,18 @@ export function PostCard({ post }: { post: Post }) {
           <img
             src={post.author?.avatarUrl || AVATAR_FALLBACK_SRC}
             alt={authorName}
-            className='h-9 w-9 rounded-full object-cover transition hover:opacity-90'
+            className='h-11 w-11 sm:h-16 sm:w-16 rounded-full object-cover transition hover:opacity-90'
             onError={handleAvatarError}
           />
         </Link>
-        <div className='leading-tight'>
+        <div className='leading-[28px] sm:leading-[30px]'>
           <Link
             to={profileHref}
-            className='font-medium text-white transition hover:text-white/80'
+            className='font-bold text-white transition hover:text-white/80 text-md  sm:leading-[30px]'
           >
             {authorName}
           </Link>
-          <div className='text-xs text-white/60'>
+          <div className='text-md font-regular leading-[28px] text-neutral-400'>
             {dayjs(post.createdAt).fromNow()}
           </div>
         </div>
@@ -87,11 +87,11 @@ export function PostCard({ post }: { post: Post }) {
         <img
           src={post.imageUrl}
           alt={post.caption?.slice(0, 60) || 'post'}
-          className='w-full aspect-square object-cover'
+          className='w-full aspect-square rounded-md object-cover'
         />
       </button>
 
-      <div className='p-3 space-y-3'>
+      <div className='py-3 space-y-3'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <LikeButton post={post} variant='compact' />

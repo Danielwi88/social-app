@@ -9,7 +9,7 @@ import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { LogoGlyph } from "@/shared/logo";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Menu, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 
@@ -238,12 +238,12 @@ export function AppLayout() {
 
   return (
     <div className="min-h-dvh bg-black text-white">
-      <header className="sticky top-0 z-40 border-b border-violet-700/40 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/70">
+      <header className="sticky top-0 z-40 border-b border-none shadow-sm shadow-neutral-900 bg-black/85 backdrop-blur supports-[backdrop-filter]:bg-black/80">
         <div className="container mx-auto flex h-20 items-center gap-4 px-4">
           <div className="flex flex-1 items-center">
             <Link to="/feed" className="flex items-center gap-3 text-white">
-              <LogoGlyph className="h-10 w-10 text-white" />
-              <span className="text-lg font-semibold tracking-wide">Sociality</span>
+              <LogoGlyph className="h-[30px] w-[30px] text-white" />
+              <span className="text-lg sm:text-display-xs font-semibold tracking-wide">Sociality</span>
             </Link>
           </div>
 
@@ -252,13 +252,13 @@ export function AppLayout() {
             ref={desktopSearchRef}
           >
             <div className="relative w-full max-w-[491px]">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 placeholder="Search"
-                className="h-12 w-full rounded-full border border-white/10 bg-white/[0.06] pl-11 pr-4 text-sm text-white placeholder:text-white/40"
+                className="h-12 w-full rounded-full border border-neutral-900 bg-neutral-950 pl-11 pr-4 text-sm text-white placeholder:text-neutral-600"
               />
               {showResults && renderSearchResults("desktop")}
             </div>
@@ -282,10 +282,10 @@ export function AppLayout() {
             <div className="relative hidden md:block" ref={accountMenuRef}>
               <button
                 type="button"
-                className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10"
+                className="flex items-center gap-3 rounded-full  bg-black px-3 py-2 text-white "
                 onClick={() => setAccountMenuOpen((prev) => !prev)}
               >
-                <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/20">
+                <span className="relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center overflow-hidden rounded-full bg-white/20">
                   <img
                     src={avatarSrc}
                     alt={displayName}
@@ -295,8 +295,8 @@ export function AppLayout() {
                   />
                   {avatarSyncing && <Skeleton className="absolute inset-0 h-full w-full" />}
                 </span>
-                <span className="text-sm font-semibold">{displayName}</span>
-                <ChevronDown className="h-4 w-4 text-white/60" />
+                <span className="text-md font-semibold">{displayName}</span>
+                
               </button>
               {accountMenuOpen && (
                 <div className="absolute right-0 top-[calc(100%+0.75rem)] w-48 rounded-2xl border border-white/10 bg-black/90 p-2 text-sm text-white/80 shadow-xl backdrop-blur">

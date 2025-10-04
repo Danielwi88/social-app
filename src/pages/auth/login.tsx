@@ -88,7 +88,7 @@ export default function Login() {
           <h1 className="text-display-xs font-bold">Sociality</h1>
           </div>
 
-          <h1 className="text-xl font-bold mt-6">Welcome Back!</h1>
+          <h1 className="text-xl font-bold mt-4 sm:mt-6">Welcome Back!</h1>
           
         </div>
 

@@ -25,7 +25,7 @@ export function LikeButton({ post, variant = "default" }: LikeButtonProps) {
   const isCompact = variant === "compact";
   const toggleClass = cn(
     "flex items-center rounded-full transition-colors select-none text-white/80 !bg-transparent hover:!bg-transparent hover:!text-white data-[state=on]:!text-[#B41759]",
-    isCompact ? "h-14 gap-4 px-5 text-lg font-semibold" : "h-16 gap-5 px-8 text-2xl font-semibold",
+    isCompact ? "h-14 gap-4 text-lg font-semibold" : "h-16 gap-y-5 text-2xl font-semibold",
   );
   const iconSize = isCompact ? 24 : 28;
 

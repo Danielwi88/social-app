@@ -101,7 +101,7 @@ export default function Register() {
     <div className='relative flex min-h-dvh items-center justify-center overflow-hidden bg-black px-4 py-16 sm:px-6'>
       <AuthBackdrop variant='register' />
 
-      <div className='relative w-full max-w-md rounded-[32px] border border-white/10 bg-black/40 p-8 text-white shadow-[0_25px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-10'>
+      <div className='relative w-full max-w-[523px] rounded-[32px] border border-white/10 bg-black/40 p-8 text-white shadow-[0_25px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-10'>
         <div className='flex flex-col items-center text-center'>
 
           <div className="flex gap-[11px] items-center">
@@ -110,14 +110,14 @@ export default function Register() {
           <h1 className="text-display-xs font-bold">Sociality</h1>
           </div>
 
-          <h1 className="text-xl font-bold mt-6">Register!</h1>
+          <h1 className="text-xl font-bold mt-4 sm:mt-6">Register</h1>
           
 
           
         </div>
 
         <form
-          className='mt-6 space-y-5'
+          className='mt-4 sm:mt-6 space-y-5'
           onSubmit={handleSubmit((v) => mutate.mutate(v))}
           noValidate
         >
@@ -129,7 +129,7 @@ export default function Register() {
                 {...register('name')}
                 placeholder='John Doe'
                 aria-invalid={!!formState.errors.name}
-                className={cn(
+                className={cn("text-sm",
                   inputBase,
                   formState.errors.name ? inputError : inputOk
                 )}
@@ -285,14 +285,14 @@ type FormFieldProps = {
 function FormField({ label, error, input, trailing }: FormFieldProps) {
   return (
     <div className='space-y-2'>
-      <label className='text-xs font-semibold uppercase tracking-wide text-white/70'>
+      <label className='text-sm font-bold tracking-wide text-neutral-25'>
         {label}
       </label>
-      <div className='relative flex items-center'>
+      <div className='relative flex items-center text-sm mt-[2px]'>
         {input}
         {trailing}
       </div>
-      {error && <p className='text-xs text-rose-400'>{error}</p>}
+      {error && <p className='text-sm text-accent-red'>{error}</p>}
     </div>
   );
 }
