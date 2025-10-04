@@ -91,14 +91,14 @@ export function PostCard({ post }: { post: Post }) {
         />
       </button>
 
-      <div className='py-3 space-y-3'>
+      <div className='py-1 space-y-0'>
         <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-4'>
+          <div className='flex items-center gap-x-3 sm:gap-x-4'>
             <LikeButton post={post} variant='compact' />
             <Link
               to={`/posts/${post.id}`}
               state={{ from: location.pathname, focusComments: true }}
-              className='flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white'
+              className='flex items-center gap-[6px] text-sm sm:text-md font-semibold text-neutral-25 transition hover:text-white'
               aria-label='View comments'
             >
               <svg
@@ -143,7 +143,7 @@ export function PostCard({ post }: { post: Post }) {
             <button
               type='button'
               onClick={handleShare}
-              className='flex items-center gap-1.5 text-sm font-medium text-white/80 transition hover:text-white'
+              className='flex items-center gap-1.5 text-sm sm:text-md font-semibold text-neutral-25 transition hover:text-white cursor-pointer'
               aria-label='Share post'
             >
               <svg
@@ -176,12 +176,12 @@ export function PostCard({ post }: { post: Post }) {
         </div>
 
         <div>
-          <span className='font-medium text-white'>{authorName}</span>
+          <span className='font-bold text-neutral-25 text-sm sm:text-md leading-[28px] sm:leading-[30px]'>{authorName}</span>
           {post.caption && (
-            <div className='mt-2'>
+            <div className='mt-2 text-neutral-25 text-sm sm:text-md leading-[28px] sm:leading-[30px] font-regular'>
               <p
                 className={cn(
-                  'text-sm text-white/90 whitespace-pre-wrap',
+                  'text-sm text-neutral-25 sm:text-md leading-[28px] sm:leading-[30px] font-regularwhitespace-pre-wrap',
                   !isCaptionExpanded && 'line-clamp-2'
                 )}
               >
@@ -191,7 +191,7 @@ export function PostCard({ post }: { post: Post }) {
                 <button
                   type='button'
                   onClick={() => setIsCaptionExpanded((prev) => !prev)}
-                  className='mt-2 text-sm font-medium text-blue-400 transition hover:text-blue-300'
+                  className='mt-2 text-sm sm:text-md font-medium text-primary-200 transition hover:text-purple-500 cursor-pointer hover:scale-105'
                 >
                   {isCaptionExpanded ? 'Show Less' : 'Show More'}
                 </button>

@@ -173,8 +173,8 @@ export function AppLayout() {
   const renderSearchResults = (variant: "desktop" | "mobile") => {
     const containerClasses =
       variant === "desktop"
-        ? "absolute left-0 right-0 top-full mt-3 rounded-[28px] border border-white/10 bg-[#08080C]/95 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur"
-        : "absolute left-0 right-0 top-full mt-3 rounded-[28px] border border-white/10 bg-[#08080C]/95 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur";
+        ? "absolute left-0 right-0 top-full mt-3 rounded-[20px] sm:border sm:border-neutral-900 bg-neutral-950 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur"
+        : "absolute left-0 right-0 top-full mt-3 rounded-[20px]  sm:border sm:border-neutral-900 bg-neutral-950 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur";
 
     const listItemClass =
       "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition hover:bg-white/[0.08]";
@@ -264,17 +264,18 @@ export function AppLayout() {
             </div>
           </div>
 
-          <div className="flex flex-1 items-center justify-end gap-3">
+          {/* mobile search icon */}
+          <div className="flex flex-1 items-center justify-end gap-4">
             <button
               type="button"
-              className="md:hidden rounded-full border border-white/20 p-2 text-white"
+              className="md:hidden hover:scale-105 hover:cursor-pointer hover:font-bold p-0 text-white"
               aria-label="Search"
               onClick={() => {
                 setMobileSearchOpen(true);
                 setSearchFocused(true);
               }}
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-6 w-6" />
             </button>
 
             {/* <ThemeToggle /> */}
@@ -335,13 +336,14 @@ export function AppLayout() {
               )}
             </div>
 
+            {/* hamburger mobile */}
             <button
               type="button"
-              className="md:hidden rounded-full border border-white/20 p-2 text-white"
+              className="md:hidden hover:scale-105 hover:font-bold cursor-pointer p-1 text-white"
               aria-label="Menu"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
             </button>
           </div>
         </div>

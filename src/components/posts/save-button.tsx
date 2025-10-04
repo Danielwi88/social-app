@@ -97,7 +97,7 @@ export function SaveButton({ post }: { post: Post }) {
       type="button"
       onClick={() => mutate.mutate(isSaved)}
       disabled={mutate.isPending}
-      className={`flex h-10 w-10 items-center justify-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:opacity-60 ${
+      className={`flex h-10 w-10 text-neutral-25 items-center justify-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:opacity-60 ${
         isSaved ? "bg-violet-500/10 hover:bg-violet-500/15" : "bg-white/5 hover:bg-white/10"
       }`}
       aria-pressed={isSaved}
@@ -106,7 +106,7 @@ export function SaveButton({ post }: { post: Post }) {
       <img
         src={isSaved ? "/Savedbold.png" : "/Save.png"}
         alt=""
-        className={`h-5 w-5 object-contain transition ${isSaved ? "scale-105" : "opacity-90"}`}
+        className={`h-6 w-6 cursor-pointer object-contain transition ${isSaved ? "scale-105" : "opacity-90"}`}
         aria-hidden="true"
       />
       <span className="sr-only">{isSaved ? "Unsave" : "Save"}</span>

@@ -144,7 +144,7 @@ export default function Login() {
           <Button
             type="submit"
             disabled={mutate.isPending}
-            className="mt-3 text-md font-bold h-12 w-full rounded-full bg-primary-300 hover:bg-gradient-to-r from-[#5613A3] to-[#522BC8] shadow-[0_10px_40px_rgba(86,19,163,0.35)] cursor-pointer hover:scale-105 hover:-translate-y-0.5"
+            className="mt-3 text-md font-bold h-12 w-full rounded-full bg-primary-300 hover:bg-gradient-to-r from-[#5613A3] to-[#522BC8] shadow-[0_10px_40px_rgba(86,19,163,0.35)] cursor-pointer hover:scale-105 hover:-translate-y-0.5 !text-white"
           >
             {mutate.isPending ? "Signing in…" : "Login"}
           </Button>
@@ -152,7 +152,7 @@ export default function Login() {
 
         <p className="mt-4 text-center text-sm font-semibold text-white/60">
           Don’t have an account?{" "}
-          <Link to="/register" className="font-bold text-primary-200 text-sm hover:text-violet-300 hover:scale-105 hover:font-extrabold">
+          <Link to="/register" className="font-bold text-primary-200 text-sm hover:text-violet-300 hover:scale-105 hover:font-extrabold ">
             Register
           </Link>
         </p>

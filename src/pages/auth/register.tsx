@@ -255,7 +255,7 @@ export default function Register() {
           <Button
             type='submit'
             disabled={mutate.isPending}
-            className='h-12 w-full rounded-full bg-gradient-to-r from-[#5613A3] to-[#522BC8] text-sm font-semibold shadow-[0_10px_40px_rgba(86,19,163,0.35)] hover:from-[#6a1fd8] hover:to-[#5b3be0]'
+            className='h-12 w-full rounded-full bg-gradient-to-r from-[#5613A3] to-[#522BC8] text-md font-bold shadow-[0_10px_40px_rgba(86,19,163,0.35)] hover:from-[#6a1fd8] hover:to-[#5b3be0] !text-white'
           >
             {mutate.isPending ? 'Creating…' : 'Submit'}
           </Button>
