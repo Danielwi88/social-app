@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { follow, unfollow } from "@/api/users";
@@ -216,7 +216,7 @@ export function FollowButton({
   );
 
   const showIcon = !compact;
-  const Icon = resolvedIsFollowing ? Check : Plus;
+  const Icon = resolvedIsFollowing ? () => <img src="/check-circle.png" alt="" className="h-5 w-5" /> : Plus;
 
   return (
     <button

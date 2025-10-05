@@ -1,24 +1,28 @@
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { LayoutGrid, Heart, Send, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-import { getPublicUser, getUserLikes, getUserPosts } from "../../api/users";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FollowButton } from "../../components/users/follow-button";
-import { ProfileHeader } from "@/components/profile/profile-header";
-import { Button } from "@/components/ui/button";
-import { ProfileMediaGrid } from "@/components/profile/profile-media-grid";
+import { HeartIcon } from "@/components/ui/heart-icon";
+import { SendIcon } from "@/components/ui/send-icon";
+
+import { MobileFloatingNav } from "@/components/navigation/mobile-floating-nav";
 import { FollowersModal } from "@/components/profile/followers-modal";
 import { FollowingModal } from "@/components/profile/following-modal";
-import { MobileFloatingNav } from "@/components/navigation/mobile-floating-nav";
+import { ProfileHeader } from "@/components/profile/profile-header";
+import { ProfileMediaGrid } from "@/components/profile/profile-media-grid";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getPublicUser, getUserLikes, getUserPosts } from "../../api/users";
+import { FollowButton } from "../../components/users/follow-button";
 
 export default function PublicProfile() {
   const { username = "" } = useParams();
   const navigate = useNavigate();
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("gallery");
 
   const profile = useQuery({
     queryKey: ["profile", username],
@@ -114,7 +118,7 @@ export default function PublicProfile() {
               queryKeyProfile={["profile", u.username] as const}
               isFollowing={u.isFollowing}
               followersCount={u.followers}
-              className="w-full md:w-auto"
+              className="w-full md:w-auto text-md cursor-pointer bg-black sm:h-12"
             />
           )
         }
@@ -122,28 +126,28 @@ export default function PublicProfile() {
           <Button
             type="button"
             onClick={shareProfile}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] p-0 text-white hover:bg-white/[0.12]"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-neutral-900 bg-black p-0 text-white hover:bg-white/[0.12]"
             aria-label="Share profile"
           >
-            <Send className="size-4" />
+            <SendIcon className="size-6" />
           </Button>
         }
       />
 
-      <Tabs defaultValue="gallery" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="flex w-full items-center justify-start gap-8 rounded-none border-b border-white/10 bg-transparent px-1">
           <TabsTrigger
             value="gallery"
             className="relative flex h-12 flex-none items-center gap-2 rounded-none border-none bg-transparent px-2 text-sm font-medium text-white/60 transition data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:-bottom-[1px] data-[state=active]:after:left-0 data-[state=active]:after:h-[2px] data-[state=active]:after:w-full data-[state=active]:after:bg-white"
           >
-            <LayoutGrid className="size-4" />
+            <img src="/grid-3.svg" alt="grid" width='20' height='20' className="sm:size-6" />
             Gallery
           </TabsTrigger>
           <TabsTrigger
             value="liked"
             className="relative flex h-12 flex-none items-center gap-2 rounded-none border-none bg-transparent px-2 text-sm font-medium text-white/60 transition data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:-bottom-[1px] data-[state=active]:after:left-0 data-[state=active]:after:h-[2px] data-[state=active]:after:w-full data-[state=active]:after:bg-white"
           >
-            <Heart className="size-4" />
+            <HeartIcon className="size-5" isActive={activeTab === "liked"} />
             Liked
           </TabsTrigger>
         </TabsList>

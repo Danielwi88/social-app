@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Bookmark, Send } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+
+import { SendIcon } from "@/components/ui/send-icon";
 
 import { MobileFloatingNav } from "@/components/navigation/mobile-floating-nav";
 import { FollowersModal } from "@/components/profile/followers-modal";
@@ -106,7 +108,7 @@ export default function Me() {
             className="h-10 w-10 sm:w-12 sm:h-12 rounded-full border border-neutral-900 bg-black p-0 text-white shadow hover:bg-white/[0.12]"
             aria-label="Share profile"
           >
-            <Send className="size-5 sm:size-6" />
+            <SendIcon className="size-5 sm:size-6" />
           </Button>
         }
       />

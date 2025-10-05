@@ -12,13 +12,13 @@ const EditProfile = lazy(() => import('@/pages/me/edit-profile'));
 const PostDetail = lazy(() => import('@/pages/post/post-detail'));
 const AddPost = lazy(() => import('@/pages/post/add-post'));
 
-const PublicProfile = lazy(() => import('@/pages/profile/public-profile'));
+const PublicProfile = lazy(() => import('@/pages/public-profile/public-profile'));
 const SearchUsers = lazy(() => import('@/pages/users/search-users'));
 const MyFollowers = lazy(() => import('@/pages/me/followers'));
 const MyFollowing = lazy(() => import('@/pages/me/following'));
 
-const PublicFollowers = lazy(() => import('@/pages/profile/followers'));
-const PublicFollowing = lazy(() => import('@/pages/profile/following'));
+const PublicFollowers = lazy(() => import('@/pages/public-profile/followers'));
+const PublicFollowing = lazy(() => import('@/pages/public-profile/following'));
 
 export function AppRouter() {
   return (
