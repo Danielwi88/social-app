@@ -246,26 +246,34 @@ export default function PostDetail() {
   );
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 px-3 py-6 sm:px-6 '>
-      <div className='relative grid w-full max-w-[1200px] lg:h-[768px] overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:max-h-[90vh] sm:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
+    <div className='fixed inset-0 z-50 flex flex-col overflow-y-auto bg-black/70 sm:items-center sm:justify-center sm:overflow-y-visible sm:px-6 sm:py-6'>
+      <div className='relative flex h-full w-full flex-col overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:h-auto sm:max-h-[90vh] sm:max-w-[1200px] sm:grid sm:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] '>
         <button
           type='button'
           onClick={handleClose}
           aria-label='Close'
-          className='absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center  bg-black/60 text-white/80 transition hover:text-white'
+          className='absolute right-4 top-4 z-20 hidden h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/80 transition hover:text-white sm:flex'
         >
-          <X className='size-4  sm:size-6' />
+          <X className='size-5 cursor-pointer' />
         </button>
 
-        <div className='relative mt-12 min-h-[280px] max-w-[720px] max-h-[720px] bg-neutral-950 sm:min-h-0'>
+        <div className='relative w-full aspect-square bg-neutral-950 sm:mt-12 sm:h-full max-h-[360px] xs:max-h-[350px] xm:max-h-[400px] sm:max-h-[720px] sm:max-w-[720px] sm:aspect-auto'>
           <img
             src={hydratedPost.imageUrl}
             alt={hydratedPost.caption ?? 'Post'}
             className='h-full w-full object-cover'
           />
+          <button
+            type='button'
+            onClick={handleClose}
+            aria-label='Close post'
+            className='absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/80 sm:hidden'
+          >
+            <X className='size-5' />
+          </button>
         </div>
 
-        <div className='flex max-h-[90vh] flex-col mt-12  bg-black p-4 sm:p-5 max-w-[480px]'>
+        <div className='flex flex-1 flex-col rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6 pt-6 sm:mt-12 sm:max-h-[90vh] sm:max-w-[480px] sm:rounded-none sm:border-t-0 sm:bg-black sm:px-5 sm:pb-6 sm:pt-5'>
           <header className='flex items-start justify-between sm:mr-12 gap-4'>
             <div className='flex items-center gap-3'>
               <img
@@ -299,7 +307,7 @@ export default function PostDetail() {
             </p>
           )}
 
-          <div className='mt-4 flex flex-1 flex-col overflow-scroll border-t border-neutral-900'>
+          <div className='mt-6 flex flex-1 flex-col overflow-hidden border-t border-neutral-900 sm:mt-4'>
             <CommentsPanel
               postId={hydratedPost.id}
               autoFocusComposer={Boolean(locationState?.focusComments)}
@@ -319,7 +327,7 @@ export default function PostDetail() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={delMutation.isPending}>
+            <AlertDialogCancel  className="text-foreground" disabled={delMutation.isPending}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

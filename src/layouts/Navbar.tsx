@@ -336,20 +336,35 @@ export function AppLayout() {
               )}
             </div>
 
-            {/* hamburger mobile */}
+            {/* hamburger mobile / avatar */}
             <button
               type="button"
               className="md:hidden hover:scale-105 hover:font-bold cursor-pointer p-1 text-white"
               aria-label="Menu"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
             >
-              {mobileMenuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6 text-white" />
+              ) : user ? (
+                <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/20">
+                  <img
+                    src={avatarSrc}
+                    alt={displayName}
+                    className={`h-full w-full object-cover transition-opacity duration-150 ${avatarSyncing ? "opacity-0" : "opacity-100"}`}
+                    onLoad={handleAvatarLoad}
+                    onError={handleAvatarLoadError}
+                  />
+                  {avatarSyncing && <Skeleton className="absolute inset-0 h-full w-full" />}
+                </span>
+              ) : (
+                <Menu className="h-6 w-6 text-white" />
+              )}
             </button>
           </div>
         </div>
 
         {mobileSearchOpen && (
-          <div className="border-t border-white/10 bg-black/85 px-4 py-4 md:hidden" ref={mobileSearchRef}>
+          <div className="border-t border-white/10 bg-black/85 px- py-4 md:hidden" ref={mobileSearchRef}>
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
               <Input
@@ -402,7 +417,7 @@ export function AppLayout() {
               </Button>
               <Button
                 variant="outline"
-                className="justify-start rounded-full border border-white/20 px-6 py-3 text-white hover:bg-white/10"
+                className="justify-start rounded-full border border-white/20 px-6 py-3 text-foreground hover:bg-white/10"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleLogout();
@@ -415,7 +430,7 @@ export function AppLayout() {
         )}
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-0 py-4 sm:py-6">
         <Outlet />
       </main>
     </div>

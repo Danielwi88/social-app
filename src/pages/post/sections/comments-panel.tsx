@@ -220,8 +220,8 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
 
   return (
     <>
-      <section className="flex h-full flex-col overflow-hidden rounded-[24px]  bg-black/40 backdrop-blur">
-        <header className="flex items-center justify-between border-b border-white/10 px-4 sm:px-0 pb-3 pt-5">
+      <section className="flex h-full flex-col overflow-hidden bg-transparent sm:rounded-[24px] sm:bg-black/40 sm:backdrop-blur">
+        <header className="flex items-center justify-between border-b border-white/10 pb-3 pt-5">
           <div>
             <h3 className="text-base font-semibold text-white">Comments</h3>
             <p className="text-xs text-white/50">{commentCountCopy}</p>
@@ -230,7 +230,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
         </header>
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-0 py-5" aria-live="polite">
+          <div className="flex-1 overflow-y-auto py-5" aria-live="polite">
             {items.length === 0 && !list.isFetching && (
               <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/30 py-12 text-center">
                 <p className="text-sm font-semibold text-white/80">No comments yet</p>
@@ -246,7 +246,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                 const relativeTimeLabel = dayjs(c.createdAt).fromNow();
 
                 return (
-                  <li key={c.id} className="flex gap-3 border-b border-white/5 bg-black/30 py-3">
+                  <li key={c.id} className="flex gap-3 border-b border-white/5 bg-transparent py-3 sm:bg-black/30">
                     <img
                       src={c.author.avatarUrl || AVATAR_FALLBACK_SRC}
                       alt={displayName}
@@ -293,12 +293,12 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
           </div>
 
           {actionsSlot && (
-            <div className="border-t border-white/10 bg-black/45 px-0 py-4">
+            <div className="border-t border-white/10 bg-black/45 py-4">
               {actionsSlot}
             </div>
           )}
 
-          <div className="border-t border-white/10 bg-black/55 px-0 py-5 shadow-inner shadow-black/40">
+          <div className="border-t border-white/10 bg-black/55 py-5 shadow-inner shadow-black/40">
             <form onSubmit={handleSubmit} className="flex items-end gap-3">
               <div className="relative">
                 <button
@@ -334,7 +334,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                 )}
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 relative">
                 <label htmlFor="comment-body" className="sr-only">
                   Comment
                 </label>
@@ -346,17 +346,17 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                     composerRef.current = el;
                   }}
                   placeholder="Add a comment"
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/90 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 pr-20 text-sm sm:text-md text-white/90 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
                   autoComplete="off"
                 />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg text-primary-300 px-3 py-1.5 text-sm sm:text-md font-semibold  transition hover:bg-primary-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                  disabled={addM.isPending || !bodyValue.trim()}
+                >
+                  {addM.isPending ? "Posting…" : "Post"}
+                </button>
               </div>
-              <button
-                type="submit"
-                className="rounded-xl bg-black px-5 py-3 text-sm font-semibold text-primary-300 transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={addM.isPending || !bodyValue.trim()}
-              >
-                {addM.isPending ? "Posting…" : "Post"}
-              </button>
 
             </form>
           </div>
