@@ -33,6 +33,7 @@ import { SaveButton } from '../../components/posts/save-button';
 import type { FeedPage } from '@/types/post';
 dayjs.extend(relativeTime);
 
+
 export default function PostDetail() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
@@ -52,14 +53,17 @@ export default function PostDetail() {
     };
   }, []);
 
+  // Fetch post data using React Query
   const q = useQuery({ queryKey: ['post', id], queryFn: () => getPost(id) });
 
+  // Delete post mutation with cache invalidation
   const delMutation = useMutation({
     mutationFn: () => deletePost(id),
     onSuccess: () => {
       toast.success('Post deleted', {
         description: 'Your post has been removed.',
       });
+      // Invalidate related queries to refresh UI
       qc.invalidateQueries({ queryKey: ['feed'] });
       qc.invalidateQueries({ queryKey: ['me', 'posts'] });
       navigate('/me', { replace: true });
@@ -77,12 +81,14 @@ export default function PostDetail() {
 
   const post = q.data;
 
+  // Hydrate post with cached feed data for real-time like/save states
   const feedSnapshot = qc.getQueryData<InfiniteData<FeedPage>>(['feed']);
   let hydratedPost = post;
   if (feedSnapshot) {
     for (const page of feedSnapshot.pages ?? []) {
       const match = page.items.find((item) => item.id === post.id);
       if (match) {
+        // Use cached interaction states from feed
         hydratedPost = {
           ...post,
           liked: match.liked,
@@ -240,18 +246,18 @@ export default function PostDetail() {
   );
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 px-3 py-6 sm:px-6 '>
-      <div className='relative grid w-full max-w-[1200px] lg:h-[768px] overflow-hidden rounded-[32px] border border-white/10 bg-[#090914]/95 shadow-2xl shadow-black/60 backdrop-blur-md sm:max-h-[90vh] sm:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 px-3 py-6 sm:px-6 '>
+      <div className='relative grid w-full max-w-[1200px] lg:h-[768px] overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:max-h-[90vh] sm:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
         <button
           type='button'
           onClick={handleClose}
           aria-label='Close'
-          className='absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 transition hover:text-white'
+          className='absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center  bg-black/60 text-white/80 transition hover:text-white'
         >
-          <X className='h-4 w-4' />
+          <X className='size-4  sm:size-6' />
         </button>
 
-        <div className='relative min-h-[280px] bg-black/60 sm:min-h-0'>
+        <div className='relative mt-12 min-h-[280px] max-w-[720px] max-h-[720px] bg-neutral-950 sm:min-h-0'>
           <img
             src={hydratedPost.imageUrl}
             alt={hydratedPost.caption ?? 'Post'}
@@ -259,21 +265,21 @@ export default function PostDetail() {
           />
         </div>
 
-        <div className='flex max-h-[90vh] flex-col bg-[#0f0f19]/90 p-5 sm:p-6'>
+        <div className='flex max-h-[90vh] flex-col mt-12  bg-black p-4 sm:p-5 max-w-[480px]'>
           <header className='flex items-start justify-between sm:mr-12 gap-4'>
             <div className='flex items-center gap-3'>
               <img
                 src={hydratedPost.author?.avatarUrl || AVATAR_FALLBACK_SRC}
                 alt={authorName}
-                className='h-11 w-11 rounded-full object-cover'
+                className='h-10 w-10 rounded-full object-cover'
                 onError={handleAvatarError}
               />
               <div className='leading-tight'>
-                <div className='font-semibold text-white'>{authorName}</div>
-                <p className='text-xs text-white/60'>
+                <div className='font-bold text-sm leading-[28px] text-neutral-25'>{authorName}</div>
+                {/* <p className='text-xs text-white/60'>
                   @{hydratedPost.author?.username}
-                </p>
-                <p className='text-xs text-white/40'>{postedRelative}</p>
+                </p> */}
+                <p className='text-xs text-neutral-400 leading-[16px] pt-[2px]'>{postedRelative}</p>
               </div>
             </div>
             {isOwner && (
@@ -293,7 +299,7 @@ export default function PostDetail() {
             </p>
           )}
 
-          <div className='mt-6 flex flex-1 flex-col overflow-hidden'>
+          <div className='mt-4 flex flex-1 flex-col overflow-scroll border-t border-neutral-900'>
             <CommentsPanel
               postId={hydratedPost.id}
               autoFocusComposer={Boolean(locationState?.focusComments)}

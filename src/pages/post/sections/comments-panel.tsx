@@ -24,6 +24,11 @@ import {
 
 dayjs.extend(relativeTime);
 
+/**
+ * CommentsPanel - Displays and manages post comments with real-time updates
+ * Features: infinite scroll, optimistic updates, emoji picker, delete functionality
+ */
+
 const EMOJIS = [
   "😀",
   "😁",
@@ -67,6 +72,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
   const me = qc.getQueryData<MeResponse>(["me"]);
   const [commentToDelete, setCommentToDelete] = useState<Comment | null>(null);
 
+  // Infinite query for paginated comments loading
   const list = useInfiniteQuery({
     queryKey,
     queryFn: ({ pageParam }) => getComments(postId, pageParam as string | undefined),
@@ -94,6 +100,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
 
   type CommentsData = InfiniteData<CommentsPage>;
 
+  // Add comment mutation with optimistic updates
   const addM = useMutation<Comment, unknown, { body: string }, { prev: CommentsData | undefined }>({
     mutationFn: ({ body }) => addComment(postId, body),
     onMutate: async (variables) => {
@@ -128,9 +135,9 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
       setShowEmojiPicker(false);
       return { prev };
     },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
-      toast.error("Couldn’t post comment", { description: "Please try again." });
+    onError: (_error, _variables, context) => {
+      if (context?.prev) qc.setQueryData(queryKey, context.prev);
+      toast.error("Couldn't post comment", { description: "Please try again." });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey });
@@ -138,6 +145,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
     },
   });
 
+  // Delete comment mutation with optimistic UI updates
   const delM = useMutation<{ ok: true }, unknown, string, { prev: CommentsData | undefined }>({
     mutationFn: (id) => deleteComment(id),
     onMutate: async (id) => {
@@ -155,8 +163,8 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
       });
       return { prev };
     },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+    onError: (_error, _variables, context) => {
+      if (context?.prev) qc.setQueryData(queryKey, context.prev);
       toast.error("Failed to delete comment", { description: "Please retry." });
     },
     onSettled: () => {
@@ -212,16 +220,17 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
 
   return (
     <>
-      <section className="flex h-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-black/40 backdrop-blur">
-        <header className="flex items-center justify-between border-b border-white/10 px-6 pb-3 pt-5">
+      <section className="flex h-full flex-col overflow-hidden rounded-[24px]  bg-black/40 backdrop-blur">
+        <header className="flex items-center justify-between border-b border-white/10 px-4 sm:px-0 pb-3 pt-5">
           <div>
             <h3 className="text-base font-semibold text-white">Comments</h3>
             <p className="text-xs text-white/50">{commentCountCopy}</p>
+            
           </div>
         </header>
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6 py-5" aria-live="polite">
+          <div className="flex-1 overflow-y-auto px-0 py-5" aria-live="polite">
             {items.length === 0 && !list.isFetching && (
               <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/30 py-12 text-center">
                 <p className="text-sm font-semibold text-white/80">No comments yet</p>
@@ -237,7 +246,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                 const relativeTimeLabel = dayjs(c.createdAt).fromNow();
 
                 return (
-                  <li key={c.id} className="flex gap-3 rounded-2xl border border-white/5 bg-black/30 p-3">
+                  <li key={c.id} className="flex gap-3 border-b border-white/5 bg-black/30 py-3">
                     <img
                       src={c.author.avatarUrl || AVATAR_FALLBACK_SRC}
                       alt={displayName}
@@ -284,24 +293,24 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
           </div>
 
           {actionsSlot && (
-            <div className="border-t border-white/10 bg-black/45 px-6 py-4">
+            <div className="border-t border-white/10 bg-black/45 px-0 py-4">
               {actionsSlot}
             </div>
           )}
 
-          <div className="border-t border-white/10 bg-black/55 px-5 py-5 shadow-inner shadow-black/40">
+          <div className="border-t border-white/10 bg-black/55 px-0 py-5 shadow-inner shadow-black/40">
             <form onSubmit={handleSubmit} className="flex items-end gap-3">
               <div className="relative">
                 <button
                   type="button"
                   ref={emojiTriggerRef}
                   onClick={() => setShowEmojiPicker((prev) => !prev)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/70 transition hover:text-white"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-white/70 transition hover:text-white"
                   aria-haspopup="dialog"
                   aria-expanded={showEmojiPicker}
                   aria-label={showEmojiPicker ? "Hide emoji picker" : "Show emoji picker"}
                 >
-                  <Smile className="h-5 w-5" />
+                  <Smile className="h-6 w-6" />
                 </button>
 
                 {showEmojiPicker && (
@@ -337,18 +346,18 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                     composerRef.current = el;
                   }}
                   placeholder="Add a comment"
-                  className="w-full rounded-full border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/90 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/90 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
                   autoComplete="off"
                 />
               </div>
-
               <button
                 type="submit"
-                className="rounded-full bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-black px-5 py-3 text-sm font-semibold text-primary-300 transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={addM.isPending || !bodyValue.trim()}
               >
                 {addM.isPending ? "Posting…" : "Post"}
               </button>
+
             </form>
           </div>
         </div>
@@ -359,7 +368,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
             <AlertDialogDescription className="text-white/60">
-              This action can’t be undone. Your comment will be removed from the post.
+              This action can't be undone. Your comment will be removed from the post.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

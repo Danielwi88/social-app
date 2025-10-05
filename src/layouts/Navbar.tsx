@@ -237,9 +237,9 @@ export function AppLayout() {
   const displayName = user?.displayName ?? user?.username ?? "Your profile";
 
   return (
-    <div className="min-h-dvh bg-black text-white">
-      <header className="sticky top-0 z-40 border-b border-none shadow-sm shadow-neutral-900 bg-black/85 backdrop-blur supports-[backdrop-filter]:bg-black/80">
-        <div className="container mx-auto flex h-20 items-center gap-4 px-4">
+    <div className="min-h-dvh  bg-black text-white">
+      <header className="sticky top-0 z-40 border-b border-none shadow-sm shadow-neutral-900 bg-black/85 backdrop-blur supports-[backdrop-filter]:bg-black/80 ">
+        <div className="container mx-auto flex h-20 items-center gap-4 px-4 sm:px-0 max-w-[1200px] ">
           <div className="flex flex-1 items-center">
             <Link to="/feed" className="flex items-center gap-3 text-white">
               <LogoGlyph className="h-[30px] w-[30px] text-white" />
