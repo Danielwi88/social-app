@@ -430,7 +430,7 @@ export function AppLayout() {
         )}
       </header>
 
-      <main className="container mx-auto px-0 py-4 sm:py-6">
+      <main className="container mx-auto px-0 sm:px-0 py-4 sm:py-6">
         <Outlet />
       </main>
     </div>

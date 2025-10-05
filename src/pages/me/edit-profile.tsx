@@ -245,7 +245,7 @@ export default function EditProfile() {
   const okInput = "border-white/15";
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[800px] flex-col gap-6 px-0 pb-24 pt-8">
+    <div className="mx-auto flex min-h-dvh max-w-[800px] flex-col gap-6 px-0 sm:pb-24 sm:pt-8">
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -255,13 +255,13 @@ export default function EditProfile() {
         Edit Profile
       </button>
 
-      <div className="flex w-full flex-col gap-8  border border-white/10 bg-[#09090f]/90 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur md:flex-row md:items-start md:gap-12 md:p-10">
-        <div className="flex w-full flex-col items-center gap-4 border-b border-white/10 pb-10 text-center md:w-auto md:border-b-0 md:border-r md:border-white/10 md:pb-0  md:text-left">
+      <div className="flex w-full flex-col sm:gap-8   bg-black sm:p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur md:flex-row md:items-start md:gap-12 md:p-10">
+        <div className="flex w-full flex-col items-center gap-4 border-b border-white/10 pb-2 sm:pb-10 text-center md:w-auto md:border-b-0  md:border-white/10 md:pb-0  md:text-left">
           <div className="relative">
             <img
               src={avatarPreview || AVATAR_FALLBACK_SRC}
               alt={me.displayName}
-              className="h-20 w-20 rounded-full border border-white/15 object-cover shadow-[0_12px_45px_rgba(0,0,0,0.45)] md:h-[131px] md:w-[131px]"
+              className="h-20 w-20 rounded-full  object-cover shadow-[0_12px_45px_rgba(0,0,0,0.45)] md:h-[131px] md:w-[131px]"
               onError={handleAvatarError}
             />
           </div>
@@ -271,7 +271,7 @@ export default function EditProfile() {
               <Button
                 type="button"
                 variant="secondary"
-                className="rounded-full bg-white/[0.08] px-4 py-2 text-sm sm:text-md font-bold text-white hover:bg-white/[0.16]"
+                className="rounded-full bg-black border border-neutral-900 sm:h-12 px-4 py-2 text-sm sm:text-md font-bold text-neutral-25 hover:bg-white/[0.16]"
                 onClick={() => fileInputRef.current?.click()}
               >
                 Change Photo
@@ -290,7 +290,7 @@ export default function EditProfile() {
         </div>
 
         <form
-          className="mt-10 w-full flex-1 min-w-0 space-y-6 md:mt-0"
+          className="mt-2 sm:mt-10 w-full flex-1 min-w-0 space-y-6 md:mt-0"
           onSubmit={onSubmit}
           noValidate
         >

@@ -38,11 +38,11 @@ export function ProfileHeader({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[20px] bg-black px-5 pb-8 pt-7 md:px-0",
+        "overflow-hidden rounded-[20px] bg-black sm:px-5 pb-8 pt-7 md:px-0",
         className
       )}
     >
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-4 sm:gap-6 md:flex-row md:items-start md:justify-between">
         <div className="flex items-start gap-4 md:gap-6">
           <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 ">
             <img

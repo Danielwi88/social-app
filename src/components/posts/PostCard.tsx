@@ -56,7 +56,7 @@ export function PostCard({ post }: { post: Post }) {
   };
 
   return (
-    <article className='rounded-md max-w-[600px] bg-black border-b border-neutral-900 pb-1 sm:pb-5 sm:mb-5 overflow-hidden'>
+    <article className='max-w-[600px] mx-auto border-b border-neutral-900 pb-1 sm:pb-5 sm:mb-5 overflow-hidden'>
       <header className='flex items-center gap-2 sm:gap-3 py-3'>
         <Link
           to={profileHref}

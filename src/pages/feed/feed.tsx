@@ -58,7 +58,7 @@ export default function Feed() {
 
   return (
     <>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto px-4 sm:px-0 space-y-6">
         {items.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

@@ -22,13 +22,16 @@ import {
 } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { deletePost, getPost } from '../../api/posts';
 import { LikeButton } from '../../components/posts/like-button';
 import { SaveButton } from '../../components/posts/save-button';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { LogoGlyph } from '@/shared/logo';
 
 import type { FeedPage } from '@/types/post';
 dayjs.extend(relativeTime);
@@ -44,6 +47,22 @@ export default function PostDetail() {
   const qc = useQueryClient();
   const { user } = useAppSelector(selectAuth);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const getSmallScreenMatch = () => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false;
+    }
+    return window.matchMedia('(max-width: 767px)').matches;
+  };
+  const initialSmallScreen = getSmallScreenMatch();
+  const [isSmallScreen, setIsSmallScreen] = useState(initialSmallScreen);
+  const [isMobileCommentsOpen, setIsMobileCommentsOpen] = useState(() =>
+    initialSmallScreen || Boolean(locationState?.focusComments)
+  );
+  const [shouldFocusComposer, setShouldFocusComposer] = useState(
+    Boolean(locationState?.focusComments)
+  );
+  const [isCommentsEmpty, setIsCommentsEmpty] = useState(false);
+  const hasInitialisedSheet = useRef(initialSmallScreen);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -52,6 +71,57 @@ export default function PostDetail() {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      setIsSmallScreen(event.matches);
+      if (event.matches) {
+        setIsMobileCommentsOpen(true);
+        hasInitialisedSheet.current = true;
+      } else {
+        setIsMobileCommentsOpen(false);
+        hasInitialisedSheet.current = false;
+      }
+    };
+
+    setIsSmallScreen(mediaQuery.matches);
+    if (mediaQuery.matches && !hasInitialisedSheet.current) {
+      setIsMobileCommentsOpen(true);
+      hasInitialisedSheet.current = true;
+    }
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!locationState?.focusComments) return;
+    setShouldFocusComposer(true);
+    if (isSmallScreen) {
+      setIsMobileCommentsOpen(true);
+    }
+  }, [locationState, isSmallScreen]);
+
+  const focusComposerField = () => {
+    const input = document.getElementById('comment-body');
+    if (!(input instanceof HTMLElement)) return;
+    (input as HTMLInputElement | HTMLTextAreaElement).focus();
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  useEffect(() => {
+    if (!shouldFocusComposer) return;
+    if (!isSmallScreen) {
+      focusComposerField();
+    }
+    const timeout = window.setTimeout(() => setShouldFocusComposer(false), 400);
+    return () => window.clearTimeout(timeout);
+  }, [shouldFocusComposer, isSmallScreen]);
 
   // Fetch post data using React Query
   const q = useQuery({ queryKey: ['post', id], queryFn: () => getPost(id) });
@@ -143,10 +213,12 @@ export default function PostDetail() {
   };
 
   const handleCommentFocus = () => {
-    const input = document.getElementById('comment-body');
-    if (!(input instanceof HTMLElement)) return;
-    (input as HTMLInputElement | HTMLTextAreaElement).focus();
-    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setShouldFocusComposer(true);
+    if (isSmallScreen) {
+      setIsMobileCommentsOpen(true);
+      return;
+    }
+    focusComposerField();
   };
 
   const handleClose = () => {
@@ -245,36 +317,71 @@ export default function PostDetail() {
     </div>
   );
 
+  const handleMobileSheetChange = (open: boolean) => {
+    setIsMobileCommentsOpen(open);
+    if (!open) {
+      navigate('/feed', { replace: true });
+    }
+  };
+
+  const handleCommentsEmptyChange = (empty: boolean) => {
+    setIsCommentsEmpty(empty);
+  };
+
   return (
     <div className='fixed inset-0 z-50 flex flex-col overflow-y-auto bg-black/70 sm:items-center sm:justify-center sm:overflow-y-visible sm:px-6 sm:py-6'>
-      <div className='relative flex h-full w-full flex-col overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:h-auto sm:max-h-[90vh] sm:max-w-[1200px] sm:grid sm:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] '>
-        <button
-          type='button'
-          onClick={handleClose}
-          aria-label='Close'
-          className='absolute right-4 top-4 z-20 hidden h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/80 transition hover:text-white sm:flex'
-        >
-          <X className='size-5 cursor-pointer' />
-        </button>
+      {isSmallScreen && (
+        <header className='relative z-[60] flex items-center justify-between border-b border-white/5 bg-black/85 px-4 py-3 text-white backdrop-blur sm:hidden'>
+          <div className='flex items-center gap-2'>
+            <LogoGlyph className='h-7 w-7 text-white' />
+            <span className='text-lg font-semibold'>Sociality</span>
+          </div>
+          <div className='flex items-center gap-3'>
+            <button
+              type='button'
+              onClick={() => navigate('/users/search')}
+              className='flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10'
+              aria-label='Search users'
+            >
+              <Search className='h-5 w-5' />
+            </button>
+            <img
+              src={user?.avatarUrl || AVATAR_FALLBACK_SRC}
+              alt={user?.displayName ?? user?.username ?? 'Profile'}
+              onError={handleAvatarError}
+              className='h-10 w-10 rounded-full border border-white/10 object-cover'
+            />
+          </div>
+        </header>
+      )}
+      <button
+        type='button'
+        onClick={handleClose}
+        aria-label='Close'
+        className='absolute right-4 top-4 z-[70] hidden h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/80 transition hover:text-white md:flex'
+      >
+        <X className='size-5 cursor-pointer' />
+      </button>
+      <div className='relative flex w-full flex-1 flex-col overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:h-auto sm:max-h-[90vh] sm:max-w-[1200px] md:grid md:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
 
-        <div className='relative w-full aspect-square bg-neutral-950 sm:mt-12 sm:h-full max-h-[360px] xs:max-h-[350px] xm:max-h-[400px] sm:max-h-[720px] sm:max-w-[720px] sm:aspect-auto'>
+        <div className='relative px-4 sm:px-0  w-full aspect-square bg-neutral-950 md:h-full max-h-[360px] xs:max-h-[350px] xm:max-h-[380px] md:max-h-[410px] lg:max-h-[600px] xl:max-h-[720px] md:max-w-[720px] md:aspect-auto'>
           <img
             src={hydratedPost.imageUrl}
             alt={hydratedPost.caption ?? 'Post'}
-            className='h-full w-full object-cover'
+            className='h-full w-full object-cover rounded-md md:rounded-0'
           />
           <button
             type='button'
             onClick={handleClose}
             aria-label='Close post'
-            className='absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/80 sm:hidden'
+            className='absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/80 md:hidden hover:font-bold hover:translate-y-0.5'
           >
             <X className='size-5' />
           </button>
         </div>
 
-        <div className='flex flex-1 flex-col rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6 pt-6 sm:mt-12 sm:max-h-[90vh] sm:max-w-[480px] sm:rounded-none sm:border-t-0 sm:bg-black sm:px-5 sm:pb-6 sm:pt-5'>
-          <header className='flex items-start justify-between sm:mr-12 gap-4'>
+        <div className='hidden rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6  md:flex md:max-h-[90vh] md:max-w-[480px] md:flex-col md:rounded-none md:border-t-0 md:bg-black md:px-5 md:pb-6 '>
+          <header className='flex items-start justify-between gap-4 sm:mr-12'>
             <div className='flex items-center gap-3'>
               <img
                 src={hydratedPost.author?.avatarUrl || AVATAR_FALLBACK_SRC}
@@ -310,12 +417,37 @@ export default function PostDetail() {
           <div className='mt-6 flex flex-1 flex-col overflow-hidden border-t border-neutral-900 sm:mt-4'>
             <CommentsPanel
               postId={hydratedPost.id}
-              autoFocusComposer={Boolean(locationState?.focusComments)}
+              autoFocusComposer={shouldFocusComposer}
               actionsSlot={actionsSlot}
             />
           </div>
         </div>
       </div>
+
+      <div className='px-4 pb-4 pt-5 md:hidden'>
+        {actionsSlot}
+      </div>
+
+      {isSmallScreen && (
+        <Sheet open={isMobileCommentsOpen} onOpenChange={handleMobileSheetChange}>
+          <SheetContent
+            side='bottom'
+            className={cn(
+              'max-h-[80vh] border-none bg-black px-0 pb-4 pt-4 md:hidden',
+              isCommentsEmpty ? 'h-[50vh]' : 'h-[70vh]'
+            )}
+          >
+            <div className='flex h-full min-h-0 flex-col px-4 overflow-hidden'>
+              <CommentsPanel
+                postId={hydratedPost.id}
+                autoFocusComposer={shouldFocusComposer}
+                actionsSlot={actionsSlot}
+                onEmptyStateChange={handleCommentsEmptyChange}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className='bg-[#0b0b11] text-white'>

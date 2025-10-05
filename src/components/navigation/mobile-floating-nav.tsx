@@ -22,7 +22,7 @@ export function MobileFloatingNav({
         onlyMobile && 'md:hidden'
       )}
     >
-      <nav className='pointer-events-auto flex w-full max-w-md items-center justify-between gap-8 rounded-full border border-neutral-900 bg-neutral-950/[0.8] px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.35)] backdrop-blur-md h-16 sm:h-20 sm:w-[360px]'>
+      <nav className='pointer-events-auto flex w-[280px] sm:w-[360px] items-center justify-between gap-8 rounded-full border border-neutral-900 bg-neutral-950/[0.8] px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.35)] backdrop-blur-md h-16 sm:h-20'>
 
       
         <Link

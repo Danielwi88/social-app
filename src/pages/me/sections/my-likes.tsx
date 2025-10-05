@@ -9,7 +9,7 @@ export default function MyLikes() {
   if (q.data?.length === 0) return <p className="text-white/60">You haven’t liked any posts yet.</p>;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4">
       {q.data?.map((p) => (
         <PostCard key={p.id} post={p} />
       ))}

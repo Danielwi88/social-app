@@ -80,7 +80,7 @@ export default function Me() {
   };
 
   return (
-    <div className="mx-auto flex max-w-[812px] flex-col gap-8 px-4 pb-28 pt-6 md:px-0">
+    <div className="mx-auto flex max-w-[812px] flex-col sm:gap-8 sm:px-4 pb-28 sm:pt-6 md:px-0">
       <ProfileHeader
         displayName={me.displayName}
         username={me.username}
@@ -96,7 +96,7 @@ export default function Me() {
         primaryAction={
           <Button
             asChild
-            className="h-10 sm:h-12 rounded-full border border-neutral-900 bg-black px-6 text-sm sm:text-md font-semibold text-white shadow hover:bg-white/[0.14]"
+            className="h-10 sm:h-12 rounded-full border border-neutral-900 bg-black sm:px-6 text-sm sm:text-md font-semibold text-white shadow hover:bg-white/[0.14]"
           >
             <Link to="/me/edit">Edit Profile</Link>
           </Button>

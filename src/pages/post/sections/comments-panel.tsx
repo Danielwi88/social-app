@@ -60,9 +60,10 @@ type CommentsPanelProps = {
   postId: string;
   autoFocusComposer?: boolean;
   actionsSlot?: ReactNode;
+  onEmptyStateChange?: (isEmpty: boolean) => void;
 };
 
-export default function CommentsPanel({ postId, autoFocusComposer = false, actionsSlot }: CommentsPanelProps) {
+export default function   CommentsPanel({ postId, autoFocusComposer = false, actionsSlot, onEmptyStateChange }: CommentsPanelProps) {
   const qc = useQueryClient();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
@@ -174,6 +175,11 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
   });
 
   const items = data?.pages.flatMap((p) => p.items) ?? [];
+  const hasComments = items.length > 0;
+
+  useEffect(() => {
+    onEmptyStateChange?.(!hasComments);
+  }, [hasComments, onEmptyStateChange]);
 
   useEffect(() => {
     if (autoFocusComposer && composerRef.current) {
@@ -220,8 +226,8 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
 
   return (
     <>
-      <section className="flex h-full flex-col overflow-hidden bg-transparent sm:rounded-[24px] sm:bg-black/40 sm:backdrop-blur">
-        <header className="flex items-center justify-between border-b border-white/10 pb-3 pt-5">
+      <section className="flex h-full min-h-0 flex-col overflow-hidden bg-black sm:rounded-[24px] sm:bg-black/40 sm:backdrop-blur">
+        <header className="flex items-center justify-between border-b border-white/10 px-4 pb-3 pt-5 sm:px-0">
           <div>
             <h3 className="text-base font-semibold text-white">Comments</h3>
             <p className="text-xs text-white/50">{commentCountCopy}</p>
@@ -229,10 +235,10 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto py-5" aria-live="polite">
+        <div className="flex flex-1 min-h-0 flex-col">
+          <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-0" aria-live="polite">
             {items.length === 0 && !list.isFetching && (
-              <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/30 py-12 text-center">
+              <div className="flex h-full flex-col items-center justify-center  bg-black py-12 text-center">
                 <p className="text-sm font-semibold text-white/80">No comments yet</p>
                 <p className="text-xs text-white/50">Start the conversation</p>
               </div>
@@ -271,7 +277,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                               type="button"
                               onClick={() => setCommentToDelete(c)}
                               disabled={delM.isPending}
-                              className="flex items-center gap-1 rounded-full px-2 py-1 text-[11px] text-white/50 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                              className="flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-white/50 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               Delete
@@ -293,12 +299,12 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
           </div>
 
           {actionsSlot && (
-            <div className="border-t border-white/10 bg-black/45 py-4">
+            <div className="border-t border-white/10 bg-black/45 px-4 py-4 sm:px-0">
               {actionsSlot}
             </div>
           )}
 
-          <div className="border-t border-white/10 bg-black/55 py-5 shadow-inner shadow-black/40">
+          <div className="border-t border-white/10 bg-black/55 px-4 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0))] shadow-inner shadow-black/40 sm:px-0">
             <form onSubmit={handleSubmit} className="flex items-end gap-3">
               <div className="relative">
                 <button
@@ -351,7 +357,7 @@ export default function CommentsPanel({ postId, autoFocusComposer = false, actio
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg text-primary-300 px-3 py-1.5 text-sm sm:text-md font-semibold  transition hover:bg-primary-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg text-violet-300 hover:text-violet-200 px-3 py-1.5 text-sm sm:text-md font-bold  transition  disabled:cursor-not-allowed disabled:text-primary-200 cursor-pointer hover:scale-105 hover:font-extrabold hover:-translate-y-0.5"
                   disabled={addM.isPending || !bodyValue.trim()}
                 >
                   {addM.isPending ? "Posting…" : "Post"}
