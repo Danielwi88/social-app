@@ -329,15 +329,15 @@ export default function PostDetail() {
 
   return (
     <div className='fixed inset-0 z-50 flex flex-col overflow-y-auto bg-black/70 sm:items-center sm:justify-center sm:overflow-y-visible sm:px-6 sm:py-6'>
-      <button
-        type='button'
-        onClick={handleClose}
-        aria-label='Close'
-        className='absolute right-4 top-4 z-[70] hidden h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/80 transition hover:text-white md:flex'
-      >
-        <X className='size-5 cursor-pointer' />
-      </button>
       <div className='relative flex w-full flex-1 flex-col overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:h-auto sm:max-h-[90vh] sm:max-w-[1200px] md:grid md:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
+        <button
+          type='button'
+          onClick={handleClose}
+          aria-label='Close'
+          className='absolute right-0 top-0 z-[70] hidden h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/80 transition hover:text-white md:flex'
+        >
+          <X className='size-5 cursor-pointer' />
+        </button>
 
         <div className='relative w-full max-h-[360px] px-4 sm:px-0 md:aspect-auto md:h-full md:max-h-[410px] md:max-w-[720px] lg:max-h-[600px] xl:max-h-[720px]'>
           <img

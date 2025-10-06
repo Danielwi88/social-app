@@ -180,11 +180,11 @@ export function LikesModal({ postId, isOpen, onClose }: LikesModalProps) {
 
       <button
             onClick={onClose}
-            className=" hover:bg-white/10 transition-colors"
+            className="hover:scale-105"
           >
-            <X className="h-6 w-6 text-white/70 cursor-pointer mr-4" />
+            <X className="h-6 w-6 text-neutral-25 cursor-pointer mr-4 hover:font-bold hover:text-primary-200 transition-colors" />
           </button>
-      <div className="relative w-full max-w-md mx-4 bg-neutral-950 rounded-2xl border border-white/10 max-h-[80vh] flex flex-col">
+      <div className="relative w-full max-w-[548px] mx-4 bg-neutral-950 rounded-2xl border border-white/10 max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Likes</h2>
           

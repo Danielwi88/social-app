@@ -100,7 +100,7 @@ export function PostCard({ post, showHints = false }: PostCardProps) {
       <img
         src={post.imageUrl}
         alt={post.caption?.slice(0, 60) || 'post'}
-        className='w-full aspect-square rounded-md object-cover'
+        className='w-full aspect-square rounded-md object-cover cursor-pointer '
       />
     </button>
   );
