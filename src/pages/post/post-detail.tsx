@@ -345,14 +345,7 @@ export default function PostDetail() {
             alt={hydratedPost.caption ?? 'Post'}
             className='h-full w-full rounded-md object-cover md:rounded-0'
           />
-          <button
-            type='button'
-            onClick={handleClose}
-            aria-label='Close post'
-            className='absolute bottom-4 right-4 hidden h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/80 hover:font-bold hover:translate-y-0.5 md:flex'
-          >
-            <X className='size-5 cursor-pointer' />
-          </button>
+          
         </div>
 
         <div className='hidden rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6 md:flex md:max-h-[90vh] md:max-w-[480px] md:flex-col md:rounded-none md:border-t-0 md:bg-black md:px-5 md:pb-6'>

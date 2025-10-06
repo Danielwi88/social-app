@@ -3,7 +3,7 @@ import { getToken } from "./storage";
 
 const envApiUrl = import.meta.env.VITE_API_URL?.trim();
 const envApiBase = import.meta.env.VITE_API_BASE?.trim();
-
+//Base URL configuration
 let baseURL: string;
 
 if (envApiUrl) {
@@ -19,13 +19,13 @@ export const api = axios.create({
   baseURL,
   withCredentials: false,
 });
-
+//Token injection for authenticated requests
 api.interceptors.request.use((config) => {
   const token = getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
+//Request/response interceptors
 api.interceptors.response.use(
   (response) => {
     const payload = response.data;

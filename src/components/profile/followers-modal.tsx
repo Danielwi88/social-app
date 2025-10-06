@@ -50,19 +50,19 @@ export function FollowersModal({
           <div className='flex items-center justify-between mb-6'>
             <h2 className='text-xl font-semibold text-white'>Followers</h2>
           </div>
-
+          {/* conditional rendering */}
           <div className='max-h-[530px] overflow-y-auto'>
-            {isLoading ? (
+            {isLoading ? (//loading state
               <p className='text-white/70 text-center py-8'>
                 Loading followers...
               </p>
-            ) : isError ? (
+            ) : isError ? (//error state
               <p className='text-rose-400 text-center py-8'>
                 Failed to load followers
               </p>
-            ) : !Array.isArray(followers) || followers.length === 0 ? (
+            ) : !Array.isArray(followers) || followers.length === 0 ? (//empty state
               <p className='text-white/60 text-center py-8'>No followers yet</p>
-            ) : (
+            ) : ( //following state list
               <div className='space-y-3'>
                 {followers.map((follower: PublicUser) => (
                   <div

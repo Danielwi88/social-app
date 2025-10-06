@@ -31,7 +31,7 @@ export function FollowingModal({
     queryKey: isMe ? ['my-following'] : ['following', username],
     queryFn: () => (isMe ? getMyFollowing() : getUserFollowing(username)),
     enabled: isOpen && (isMe || !!username),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5  cache
   });
 
   if (!isOpen) return null;
@@ -50,19 +50,21 @@ export function FollowingModal({
         <div className='rounded-2xl bg-neutral-950 p-5 max-w-[548px] lg:w-[548px] lg:h-[530px] overflow-y-auto'>
           <h2 className='text-xl font-semibold text-white mb-5'>Following</h2>
           <div className='max-h-[530px] w-full '>
+
+            {/* conditional rendering */}
             {isLoading ? (
               <p className='text-white/70 text-center py-8'>
                 Loading following...
               </p>
-            ) : isError ? (
+            ) : isError ? (//error state
               <p className='text-rose-400 text-center py-8'>
                 Failed to load following
               </p>
-            ) : !following || following.length === 0 ? (
+            ) : !following || following.length === 0 ? (//empty state
               <p className='text-white/60 text-center py-8'>
                 Not following anyone yet
               </p>
-            ) : (
+            ) : (//following  list state
               <div className='space-y-3'>
                 {following.map((user: PublicUser) => (
                   <div

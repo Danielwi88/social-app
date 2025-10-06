@@ -15,7 +15,7 @@ const initialState: AuthState = {
   user: null,
   avatarVersion: 0,
 };
-
+// Increment avatarVersion when avatar changes (for cache busting)
 const applyUserUpdate = (state: Draft<AuthState>, incoming: AuthUser | null) => {
   const prevUser = state.user;
 
@@ -75,7 +75,7 @@ const slice = createSlice({
     },
   },
 });
-
-export const { setCredentials, setUser, clearAuth } = slice.actions;
+//setUser: Update user profile information, clearAuth: Logout, clear all auth data
+export const { setCredentials, setUser, clearAuth } = slice.actions;//Store token + user data, persist to localStorage
 export const selectAuth = (s: { auth: AuthState }) => s.auth;
 export default slice.reducer;

@@ -4,7 +4,7 @@ export type FollowStatusEntry = {
   isFollowing: boolean;
   updatedAt: number;
 };
-
+//Cache follow relationships with timestamps
 export type FollowStatusState = {
   map: Record<string, FollowStatusEntry>;
 };
@@ -12,7 +12,7 @@ export type FollowStatusState = {
 const initialState: FollowStatusState = {
   map: {},
 };
-
+// Normalize usernames and track follow status with timestamps
 const normalizeKey = (username: string) => username.trim().toLowerCase();
 
 const followStatusSlice = createSlice({

@@ -7,7 +7,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { token } = useAppSelector(selectAuth);
   const loc = useLocation();
 
-  if (!token) {
+  if (!token) { // Redirect to login with return URL
     return <Navigate to={`/login?returnTo=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
   }
   return <>{children}</>;

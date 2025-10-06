@@ -56,7 +56,7 @@ const resolveSavedFlag = (value: unknown): boolean | undefined => {
   }
   return undefined;
 };
-
+// Handle multiple possible field names from backend
 const mapPost = (item: FeedPostRaw): Post => {
   const authorRaw = item.author ?? {};
   const author: UserMini = {
@@ -77,7 +77,7 @@ const mapPost = (item: FeedPostRaw): Post => {
   const likedResolved = resolveSavedFlag(
     item.liked ??
       item.likedByMe ??
-      item.isLiked ??
+      item.isLiked ?? // ... multiple variants
       item.isLikedByMe ??
       (item as { liked_by_me?: unknown }).liked_by_me ??
       (item as { liked_byMe?: unknown }).liked_byMe ??
@@ -96,14 +96,14 @@ const mapPost = (item: FeedPostRaw): Post => {
     liked: likedResolved,
   };
 };
-
+// Convert cursor to page number
 export async function getFeed(cursor?: string, limit = 12) {
   let page = 1;
   if (cursor) {
     const parsed = Number(cursor);
     if (Number.isFinite(parsed) && parsed > 0) page = Math.floor(parsed);
   }
-
+// Handle multiple response formats from backend
   const { data } = await api.get("/feed", { params: { page, limit } });
   const payload = data as FeedResponseRaw;
 

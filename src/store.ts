@@ -6,9 +6,9 @@ import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
-    postReactions: postReactionsReducer,
-    followStatus: followStatusReducer,
+    auth: authReducer, //user auth state
+    postReactions: postReactionsReducer, //like/save optimistic updates
+    followStatus: followStatusReducer,//follow realtionships cache
   },
 });
 

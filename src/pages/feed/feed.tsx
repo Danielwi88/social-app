@@ -17,14 +17,14 @@ export default function Feed() {
   });
 
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage, isLoading, isError } = query;
-
+// Infinite Scroll Implementation:
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const io = new IntersectionObserver((entries) => {
       const first = entries[0];
       if (first.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
+        fetchNextPage(); // Load more posts when sentinel visible
       }
     });
     io.observe(el);

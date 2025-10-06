@@ -14,7 +14,7 @@ export type RegisterRes = { token: string };
 
 export async function login(req: LoginReq) {
   const { data } = await api.post<LoginRes>("/auth/login", req);
-  return data;
+  return data; // Returns { token: string }
 }
 
 export async function register(req: RegisterReq) {

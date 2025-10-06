@@ -1,11 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-
+//Optimistic updates for likes/saves before server confirmation
 export type PostReaction = {
   liked: boolean;
   likeCount: number;
 };
-
+// Store post reactions by post ID for instant UI feedback
 type PostReactionsState = {
   entities: Record<string, PostReaction>;
 };
