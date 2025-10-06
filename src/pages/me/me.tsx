@@ -80,7 +80,7 @@ export default function Me() {
   };
 
   return (
-    <div className="mx-auto flex max-w-[812px] flex-col sm:gap-8 sm:px-4 pb-28 sm:pt-6 md:px-0">
+    <div className="mx-auto flex max-w-[812px] flex-col sm:gap-8 px-4 pb-28 sm:pt-6 md:px-0">
       <ProfileHeader
         displayName={me.displayName}
         username={me.username}

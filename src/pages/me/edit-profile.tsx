@@ -245,7 +245,7 @@ export default function EditProfile() {
   const okInput = "border-white/15";
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[800px] flex-col gap-6 px-0 sm:pb-24 sm:pt-8">
+    <div className="mx-4 sm:mx-auto flex min-h-dvh max-w-[800px] flex-col gap-6 px-0 sm:pb-24 sm:pt-8">
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -255,7 +255,7 @@ export default function EditProfile() {
         Edit Profile
       </button>
 
-      <div className="flex w-full flex-col sm:gap-8   bg-black sm:p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur md:flex-row md:items-start md:gap-12 md:p-10">
+      <div className="flex w-full flex-col sm:gap-8  px-0 bg-black sm:p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur md:flex-row md:items-start md:gap-12 md:p-10">
         <div className="flex w-full flex-col items-center gap-4 border-b border-white/10 pb-2 sm:pb-10 text-center md:w-auto md:border-b-0  md:border-white/10 md:pb-0  md:text-left">
           <div className="relative">
             <img
@@ -296,7 +296,7 @@ export default function EditProfile() {
         >
           <div className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-bold tracking-wide text-neutral-25">Name</label>
+              <label className="text-smfont-bold tracking-wide text-neutral-25">Name</label>
               <Input
                 placeholder="Your name"
                 {...register("name")}

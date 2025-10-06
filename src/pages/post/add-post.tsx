@@ -1,3 +1,5 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Trash2, UploadCloud } from 'lucide-react';
 import {
   type ChangeEvent,
   type DragEvent,
@@ -6,25 +8,17 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, Trash2, UploadCloud } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { createPost } from '@/api/posts';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useAppSelector } from '@/store';
-import { selectAuth } from '@/features/auth/authSlice';
-import { AVATAR_FALLBACK_SRC, handleAvatarError } from '@/lib/avatar';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 export default function AddPost() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-
-  const { user } = useAppSelector(selectAuth);
-
   const [caption, setCaption] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -144,27 +138,7 @@ export default function AddPost() {
 
   return (
     <div className='mx-auto flex max-w-[452px] flex-col gap-8 px-4 pb-16 pt-6 md:px-0'>
-      <header className='flex items-center justify-between'>
-        <button
-          type='button'
-          onClick={() => navigate(-1)}
-          className='flex items-center gap-2 sm:text-display-xs text-lg font-medium text-neutral-25 transition hover:text-white'
-        >
-          <ArrowLeft className='size-6  sm:size-8 text-neutral-25' />
-          Add Post
-        </button>
-        <div className='flex items-center gap-3'>
-          <span className='text-sm text-white/60 sm:hidden'>
-            {user?.displayName ?? user?.username}
-          </span>
-          <img
-            src={user?.avatarUrl || AVATAR_FALLBACK_SRC}
-            alt={user?.displayName ?? user?.username ?? 'User avatar'}
-            className='size-10 rounded-full object-cover sm:hidden'
-            onError={handleAvatarError}
-          />
-        </div>
-      </header>
+      
 
       <form
         onSubmit={handleSubmit}
@@ -280,11 +254,11 @@ export default function AddPost() {
 
           <Button
             type='submit'
-            className='w-full h-12 rounded-full bg-primary-300 text-sm sm:text-md font-bold text-white shadow-lg transition hover:bg-gradient-custom hover:-translate-y-0.5'
+            className='w-full h-12 rounded-full bg-primary-300 text-sm sm:text-md font-bold text-white shadow-lg transition hover:bg-gradient-custom mt-4 hover:-translate-y-0.5'
             disabled={mutation.isPending}
           >
             {mutation.isPending ? (
-              <span className='flex items-center justify-center gap-2'>
+              <span className='flex items-center justify-center gap-2 '>
                 <Loader2 className='size-4 animate-spin' />
                 Please wait uploading your post
               </span>

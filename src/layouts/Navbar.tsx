@@ -9,9 +9,9 @@ import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { LogoGlyph } from "@/shared/logo";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, Search, X } from "lucide-react";
+import { ArrowLeft, Menu, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type SyntheticEvent } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate, matchPath } from "react-router-dom";
 
 const normalizeAvatarUrl = (value?: string | null): string | undefined => {
   if (!value) return undefined;
@@ -35,6 +35,7 @@ const withVersionParam = (src: string, version: number): string => {
 
 export function AppLayout() {
   const nav = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const { token, user, avatarVersion } = useAppSelector(selectAuth);
   const fetching = useRef(false);
@@ -235,13 +236,35 @@ export function AppLayout() {
   };
 
   const displayName = user?.displayName ?? user?.username ?? "Your profile";
+  const isMePage = location.pathname === "/me";
+  const isEditProfilePage = location.pathname === "/me/edit";
+  const isAddPostPage = location.pathname === "/posts/new";
+  const profileMatch = matchPath("/profile/:username", location.pathname);
+  const showCompactMobileHeader = isMePage || isEditProfilePage || isAddPostPage || Boolean(profileMatch);
+  const mobileHeaderUsername = profileMatch?.params?.username ?? user?.username ?? "";
 
   return (
     <div className="min-h-dvh  bg-black text-white">
       <header className="sticky top-0 z-40 border-b border-none shadow-sm shadow-neutral-900 bg-black/85 backdrop-blur supports-[backdrop-filter]:bg-black/80 ">
         <div className="container mx-auto flex h-20 items-center gap-4 px-4 sm:px-0 max-w-[1200px] ">
           <div className="flex flex-1 items-center">
-            <Link to="/feed" className="flex items-center gap-3 text-white">
+            {showCompactMobileHeader && (
+              <button
+                type="button"
+                onClick={() => nav(-1)}
+                className="md:hidden flex items-center gap-2 text-neutral-25 cursor-pointer"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="size-8 text-neutral-25" />
+                <span className="text-md font-bold text-neutral-25">
+                  {mobileHeaderUsername || "Profile"}
+                </span>
+              </button>
+            )}
+            <Link
+              to="/feed"
+              className={`flex items-center gap-3 text-white ${showCompactMobileHeader ? "hidden md:flex" : ""}`}
+            >
               <LogoGlyph className="h-[30px] w-[30px] text-white" />
               <span className="text-lg sm:text-display-xs font-semibold tracking-wide">Sociality</span>
             </Link>
@@ -300,10 +323,10 @@ export function AppLayout() {
                 
               </button>
               {accountMenuOpen && (
-                <div className="absolute right-0 top-[calc(100%+0.75rem)] w-48 rounded-2xl border border-white/10 bg-black/90 p-2 text-sm text-white/80 shadow-xl backdrop-blur">
+                <div className="absolute right-0 top-[calc(100%+0.75rem)] w-48 rounded-2xl border border-white/10 bg-black/90 p-2 text-sm sm:text-md text-white/80 shadow-xl backdrop-blur cursor-pointer">
                   <button
                     type="button"
-                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-white/10"
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-white/10 cursor-pointer"
                     onClick={() => {
                       nav("/me");
                       setAccountMenuOpen(false);
@@ -313,7 +336,7 @@ export function AppLayout() {
                   </button>
                   <button
                     type="button"
-                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-white/10"
+                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-white/10 cursor-pointer"
                     onClick={() => {
                       nav("/feed");
                       setAccountMenuOpen(false);
@@ -324,7 +347,7 @@ export function AppLayout() {
                   <div className="my-2 h-px bg-white/10" />
                   <button
                     type="button"
-                    className="w-full rounded-lg px-3 py-2 text-left text-rose-400 hover:bg-rose-400/10"
+                    className="w-full rounded-lg px-3 py-2 text-left cursor-pointer text-rose-400 hover:bg-rose-400/10"
                     onClick={() => {
                       setAccountMenuOpen(false);
                       handleLogout();
@@ -364,7 +387,7 @@ export function AppLayout() {
         </div>
 
         {mobileSearchOpen && (
-          <div className="border-t border-white/10 bg-black/85 px- py-4 md:hidden" ref={mobileSearchRef}>
+          <div className="border-t border-white/10 bg-black/85 mx-4 py-4 md:hidden" ref={mobileSearchRef}>
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
               <Input

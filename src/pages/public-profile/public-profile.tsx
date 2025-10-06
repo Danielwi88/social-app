@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { HeartIcon } from "@/components/ui/heart-icon";
@@ -19,7 +18,7 @@ import { FollowButton } from "../../components/users/follow-button";
 
 export default function PublicProfile() {
   const { username = "" } = useParams();
-  const navigate = useNavigate();
+  
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [activeTab, setActiveTab] = useState("gallery");
@@ -80,8 +79,8 @@ export default function PublicProfile() {
   const isSelf = u.isMe;
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-28 pt-6 md:px-0">
-      <div className="flex items-center justify-between md:hidden">
+    <div className="sm:mx-auto flex max-w-5xl flex-col gap-8 mx-4 pb-28 pt-6 md:px-0">
+      {/* <div className="items-center justify-between hidden">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -94,7 +93,7 @@ export default function PublicProfile() {
         <span className="size-10 overflow-hidden rounded-full border border-white/15 bg-white/5">
           <img src={u.avatarUrl || undefined} alt={u.displayName} className="h-full w-full object-cover" />
         </span>
-      </div>
+      </div> */}
 
       <ProfileHeader
         displayName={u.displayName}

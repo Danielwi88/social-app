@@ -434,7 +434,7 @@ export default function PostDetail() {
             side='bottom'
             className={cn(
               'max-h-[80vh] border-none bg-black px-0 pb-4 pt-4 md:hidden',
-              isCommentsEmpty ? 'h-[50vh]' : 'h-[70vh]'
+              isCommentsEmpty ? 'h-[40vh]' : 'h-[70vh]'
             )}
           >
             <div className='flex h-full min-h-0 flex-col px-4 overflow-hidden'>

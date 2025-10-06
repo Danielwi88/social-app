@@ -83,7 +83,7 @@ export function ProfileHeader({
 
       <div className="mt-4 flex flex-col gap-4">
         
-        <div className="grid grid-cols-2 gap-y-5 gap-x-6 text-center text-white sm:grid-cols-4 sm:text-left">
+        <div className="grid  gap-y-5 gap-x-6 text-center text-white grid-cols-4 sm:text-left">
           {stats.map((stat, index) => (
             <div
               key={stat.label}
