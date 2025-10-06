@@ -1,6 +1,7 @@
 import { LikeButton } from '@/components/posts/like-button';
 import { LikesModal } from '@/components/posts/LikesModal';
 import { SaveButton } from '@/components/posts/save-button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AVATAR_FALLBACK_SRC, handleAvatarError } from '@/lib/avatar';
 import { getUserDisplayName } from '@/lib/user';
 import { cn } from '@/lib/utils';
@@ -12,7 +13,12 @@ import { toast } from 'sonner';
 import type { Post } from '../../types/post';
 dayjs.extend(relativeTime);
 
-export function PostCard({ post }: { post: Post }) {
+interface PostCardProps {
+  post: Post;
+  showHints?: boolean;
+}
+
+export function PostCard({ post, showHints = false }: PostCardProps) {
   const location = useLocation();
   const [showLikesModal, setShowLikesModal] = useState(false);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
@@ -55,21 +61,63 @@ export function PostCard({ post }: { post: Post }) {
     toast.error('Sharing isn’t supported in this browser yet');
   };
 
+  const avatarLink = (
+    <Link
+      to={profileHref}
+      className='inline-flex'
+      aria-label={`View ${authorName}'s profile`}
+    >
+      <img
+        src={post.author?.avatarUrl || AVATAR_FALLBACK_SRC}
+        alt={authorName}
+        className='h-11 w-11 sm:h-16 sm:w-16 rounded-full object-cover transition hover:opacity-90'
+        onError={handleAvatarError}
+      />
+    </Link>
+  );
+
+  const avatarNode = showHints ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{avatarLink}</TooltipTrigger>
+      <TooltipContent>View friend's profile</TooltipContent>
+    </Tooltip>
+  ) : (
+    avatarLink
+  );
+
+  const saveButton = <SaveButton post={post} />;
+  const saveNode = showHints ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{saveButton}</TooltipTrigger>
+      <TooltipContent>Save post</TooltipContent>
+    </Tooltip>
+  ) : (
+    saveButton
+  );
+
+  const imageButton = (
+    <button onClick={() => setShowLikesModal(true)} className='w-full'>
+      <img
+        src={post.imageUrl}
+        alt={post.caption?.slice(0, 60) || 'post'}
+        className='w-full aspect-square rounded-md object-cover'
+      />
+    </button>
+  );
+
+  const imageNode = showHints ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{imageButton}</TooltipTrigger>
+      <TooltipContent>Click image to view likes</TooltipContent>
+    </Tooltip>
+  ) : (
+    imageButton
+  );
+
   return (
     <article className='max-w-[600px] mx-auto border-b border-neutral-900 pb-1 sm:pb-5 sm:mb-5 overflow-hidden'>
       <header className='flex items-center gap-2 sm:gap-3 py-3'>
-        <Link
-          to={profileHref}
-          className='inline-flex'
-          aria-label={`View ${authorName}'s profile`}
-        >
-          <img
-            src={post.author?.avatarUrl || AVATAR_FALLBACK_SRC}
-            alt={authorName}
-            className='h-11 w-11 sm:h-16 sm:w-16 rounded-full object-cover transition hover:opacity-90'
-            onError={handleAvatarError}
-          />
-        </Link>
+        {avatarNode}
         <div className='leading-[28px] sm:leading-[30px]'>
           <Link
             to={profileHref}
@@ -83,13 +131,7 @@ export function PostCard({ post }: { post: Post }) {
         </div>
       </header>
 
-      <button onClick={() => setShowLikesModal(true)} className='w-full'>
-        <img
-          src={post.imageUrl}
-          alt={post.caption?.slice(0, 60) || 'post'}
-          className='w-full aspect-square rounded-md object-cover'
-        />
-      </button>
+      {imageNode}
 
       <div className='py-1 space-y-0'>
         <div className='flex items-center justify-between'>
@@ -172,7 +214,7 @@ export function PostCard({ post }: { post: Post }) {
               <span>8</span>
             </button>
           </div>
-          <SaveButton post={post} />
+          {saveNode}
         </div>
 
         <div>

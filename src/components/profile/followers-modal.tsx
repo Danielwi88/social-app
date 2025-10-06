@@ -36,7 +36,7 @@ export function FollowersModal({ username, isOpen, onClose, isMe = false }: Foll
             onClick={onClose}
             className="h-8 w-8 rounded-full border border-white/15 bg-white/[0.06] p-0 text-white hover:bg-white/[0.12]"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 cursor-pointer" />
           </Button>
         </div>
 

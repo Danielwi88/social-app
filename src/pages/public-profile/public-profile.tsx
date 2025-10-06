@@ -79,21 +79,8 @@ export default function PublicProfile() {
   const isSelf = u.isMe;
 
   return (
-    <div className="sm:mx-auto flex max-w-5xl flex-col gap-8 mx-4 pb-28 pt-6 md:px-0">
-      {/* <div className="items-center justify-between hidden">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <span className="text-sm font-medium text-white/80">{u.displayName}</span>
-        <span className="size-10 overflow-hidden rounded-full border border-white/15 bg-white/5">
-          <img src={u.avatarUrl || undefined} alt={u.displayName} className="h-full w-full object-cover" />
-        </span>
-      </div> */}
+    <div className="sm:mx-auto flex max-w-5xl flex-col gap-8 mx-4 pb-28 pt-0 sm:pt-6 md:px-0">
+      
 
       <ProfileHeader
         displayName={u.displayName}

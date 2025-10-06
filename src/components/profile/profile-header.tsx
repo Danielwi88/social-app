@@ -38,7 +38,7 @@ export function ProfileHeader({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[20px] bg-black sm:px-5 pb-8 pt-7 md:px-0",
+        "overflow-hidden rounded-[20px] bg-black sm:px-5 pb-8 pt-0 sm:pt-2 md:px-0",
         className
       )}
     >

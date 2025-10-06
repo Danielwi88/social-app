@@ -246,7 +246,7 @@ export function AppLayout() {
   return (
     <div className="min-h-dvh  bg-black text-white">
       <header className="sticky top-0 z-40 border-b border-none shadow-sm shadow-neutral-900 bg-black/85 backdrop-blur supports-[backdrop-filter]:bg-black/80 ">
-        <div className="container mx-auto flex h-20 items-center gap-4 px-4 sm:px-0 max-w-[1200px] ">
+        <div className="container mx-auto flex h-16 sm:h-20 items-center gap-4 px-4 sm:px-0 max-w-[1200px] ">
           <div className="flex flex-1 items-center">
             {showCompactMobileHeader && (
               <button
@@ -367,7 +367,7 @@ export function AppLayout() {
               onClick={() => setMobileMenuOpen((prev) => !prev)}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-white" />
+                <X className="h-6 w-6 text-white cursor-pointer" />
               ) : user ? (
                 <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/20">
                   <img
@@ -407,7 +407,7 @@ export function AppLayout() {
                   setSearchFocused(false);
                 }}
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 cursor-pointer" />
               </button>
             </div>
             <div className="relative mt-3">{showResults && renderSearchResults("mobile")}</div>
@@ -416,11 +416,11 @@ export function AppLayout() {
         )}
 
         {mobileMenuOpen && (
-          <div className="border-t border-white/10 bg-black/85 px-4 py-4 md:hidden">
+          <div className="border-t border-white/10 min-h-dvh bg-black/85 px-4 py-4 md:hidden">
             <div className="grid gap-2">
               <Button
                 variant="ghost"
-                className="justify-start rounded-full bg-white/5 px-6 py-3 text-white hover:bg-white/10"
+                className="justify-center rounded-full bg-white/5 px-6 py-3 text-white hover:bg-primary-200"
                 onClick={() => {
                   nav("/feed");
                   setMobileMenuOpen(false);
@@ -430,7 +430,7 @@ export function AppLayout() {
               </Button>
               <Button
                 variant="ghost"
-                className="justify-start rounded-full bg-white/5 px-6 py-3 text-white hover:bg-white/10"
+                className="justify-center rounded-full bg-white/5 px-6 py-3 text-white hover:bg-primary-200"
                 onClick={() => {
                   nav("/me");
                   setMobileMenuOpen(false);
@@ -440,7 +440,7 @@ export function AppLayout() {
               </Button>
               <Button
                 variant="outline"
-                className="justify-start rounded-full border border-white/20 px-6 py-3 text-foreground hover:bg-white/10"
+                className="justify-center rounded-full border border-neutral-900 px-6 py-3 text-white hover:bg-primary-200"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleLogout();

@@ -22,16 +22,16 @@ import {
 } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Search, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { deletePost, getPost } from '../../api/posts';
-import { LikeButton } from '../../components/posts/like-button';
-import { SaveButton } from '../../components/posts/save-button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { LogoGlyph } from '@/shared/logo';
+import { MobileFloatingNav } from '@/components/navigation/mobile-floating-nav';
+import { PostActions } from '@/components/posts/post-actions';
+import { MobilePostCard } from '@/pages/post/components/mobile-post-card';
 
 import type { FeedPage } from '@/types/post';
 dayjs.extend(relativeTime);
@@ -55,22 +55,22 @@ export default function PostDetail() {
   };
   const initialSmallScreen = getSmallScreenMatch();
   const [isSmallScreen, setIsSmallScreen] = useState(initialSmallScreen);
-  const [isMobileCommentsOpen, setIsMobileCommentsOpen] = useState(() =>
-    initialSmallScreen || Boolean(locationState?.focusComments)
+  const [isMobileCommentsOpen, setIsMobileCommentsOpen] = useState(
+    () => Boolean(locationState?.focusComments && initialSmallScreen)
   );
   const [shouldFocusComposer, setShouldFocusComposer] = useState(
     Boolean(locationState?.focusComments)
   );
   const [isCommentsEmpty, setIsCommentsEmpty] = useState(false);
-  const hasInitialisedSheet = useRef(initialSmallScreen);
 
   useEffect(() => {
+    if (isSmallScreen) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, []);
+  }, [isSmallScreen]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -80,19 +80,14 @@ export default function PostDetail() {
     const mediaQuery = window.matchMedia('(max-width: 767px)');
     const handleChange = (event: MediaQueryListEvent) => {
       setIsSmallScreen(event.matches);
-      if (event.matches) {
-        setIsMobileCommentsOpen(true);
-        hasInitialisedSheet.current = true;
-      } else {
+      if (!event.matches) {
         setIsMobileCommentsOpen(false);
-        hasInitialisedSheet.current = false;
       }
     };
 
     setIsSmallScreen(mediaQuery.matches);
-    if (mediaQuery.matches && !hasInitialisedSheet.current) {
-      setIsMobileCommentsOpen(true);
-      hasInitialisedSheet.current = true;
+    if (!mediaQuery.matches) {
+      setIsMobileCommentsOpen(false);
     }
 
     mediaQuery.addEventListener('change', handleChange);
@@ -170,10 +165,14 @@ export default function PostDetail() {
   }
   const authorName = getUserDisplayName(hydratedPost.author);
   const postedRelative = dayjs(hydratedPost.createdAt).fromNow();
-  const isOwner =
+  const profileHref = hydratedPost.author?.username
+    ? `/profile/${hydratedPost.author.username}`
+    : '/me';
+  const isOwner = Boolean(
     user?.id &&
-    hydratedPost.author?.id &&
-    String(user.id) === String(hydratedPost.author.id);
+      hydratedPost.author?.id &&
+      String(user.id) === String(hydratedPost.author.id)
+  );
 
   const handleDelete = () => setConfirmOpen(true);
 
@@ -233,94 +232,28 @@ export default function PostDetail() {
     }
   };
 
-  const actionsSlot = (
-    <div className='flex flex-wrap items-center justify-between gap-4'>
-      <div className='flex items-center gap-6'>
-        <LikeButton post={hydratedPost} />
-        <button
-          type='button'
-          onClick={handleCommentFocus}
-          className='flex items-center gap-1.5 text-sm font-semibold text-white/80 transition hover:text-white'
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='24'
-            height='24'
-            viewBox='0 0 24 24'
-            fill='none'
-          >
-            <path
-              d='M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z'
-              stroke='#FDFDFD'
-              strokeWidth='1.5'
-              strokeMiterlimit='10'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-            <path
-              d='M15.9965 11H16.0054'
-              stroke='#FDFDFD'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-            <path
-              d='M11.9955 11H12.0045'
-              stroke='#FDFDFD'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-            <path
-              d='M7.99451 11H8.00349'
-              stroke='#FDFDFD'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-          </svg>
-          <span>{hydratedPost.commentCount}</span>
-        </button>
-        <button
-          type='button'
-          onClick={handleShare}
-          className='flex items-center gap-1.5 text-sm font-semibold text-white/80 transition hover:text-white'
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='24'
-            height='24'
-            viewBox='0 0 24 24'
-            fill='none'
-          >
-            <path
-              d='M7.40018 6.32015L15.8902 3.49015C19.7002 2.22015 21.7702 4.30015 20.5102 8.11015L17.6802 16.6002C15.7802 22.3102 12.6602 22.3102 10.7602 16.6002L9.92018 14.0802L7.40018 13.2402C1.69018 11.3402 1.69018 8.23015 7.40018 6.32015Z'
-              stroke='#FDFDFD'
-              strokeWidth='1.5'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-            <path
-              d='M10.1099 13.6501L13.6899 10.0601'
-              stroke='#FDFDFD'
-              strokeWidth='1.5'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-            />
-          </svg>
-          <span>Share</span>
-        </button>
-      </div>
-      <div className='flex items-center gap-3 text-sm text-white/80'>
-        <SaveButton post={hydratedPost} />
-      </div>
-    </div>
+  const desktopActions = (
+    <PostActions
+      post={hydratedPost}
+      onComment={handleCommentFocus}
+      onShare={handleShare}
+      variant='desktop'
+    />
+  );
+
+  const mobileActions = (
+    <PostActions
+      post={hydratedPost}
+      onComment={handleCommentFocus}
+      onShare={handleShare}
+      variant='mobile'
+    />
   );
 
   const handleMobileSheetChange = (open: boolean) => {
     setIsMobileCommentsOpen(open);
     if (!open) {
-      navigate('/feed', { replace: true });
+      setShouldFocusComposer(false);
     }
   };
 
@@ -328,32 +261,74 @@ export default function PostDetail() {
     setIsCommentsEmpty(empty);
   };
 
+  const deleteDialog = (
+    <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialogContent className='bg-[#0b0b11] text-white'>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+          <AlertDialogDescription className='text-white/60'>
+            This action cannot be undone. Your post will be removed from
+            Sociality.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className='text-foreground' disabled={delMutation.isPending}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => delMutation.mutate()}
+            disabled={delMutation.isPending}
+            className='bg-rose-500 text-white hover:bg-rose-400'
+          >
+            {delMutation.isPending ? 'Deleting…' : 'Delete'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  if (isSmallScreen) {
+    return (
+      <>
+        <div className='mx-auto w-full max-w-2xl px-4 pt-0 sm:pt-4 pb-28'>
+          <MobilePostCard
+            post={hydratedPost}
+            authorName={authorName}
+            postedRelative={postedRelative}
+            profileHref={profileHref}
+            isOwner={isOwner}
+            onDelete={handleDelete}
+            actions={mobileActions}
+          />
+        </div>
+
+        <Sheet open={isMobileCommentsOpen} onOpenChange={handleMobileSheetChange}>
+          <SheetContent
+            side='bottom'
+            className={cn(
+              'max-h-[80vh] border-none bg-black px-0 pb-4 pt-4 md:hidden',
+              isCommentsEmpty ? 'h-[40vh]' : 'h-[70vh]'
+            )}
+          >
+            <div className='flex h-full min-h-0 flex-col overflow-hidden px-4'>
+              <CommentsPanel
+                postId={hydratedPost.id}
+                autoFocusComposer={shouldFocusComposer}
+                actionsSlot={mobileActions}
+                onEmptyStateChange={handleCommentsEmptyChange}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {deleteDialog}
+        <MobileFloatingNav />
+      </>
+    );
+  }
+
   return (
     <div className='fixed inset-0 z-50 flex flex-col overflow-y-auto bg-black/70 sm:items-center sm:justify-center sm:overflow-y-visible sm:px-6 sm:py-6'>
-      {isSmallScreen && (
-        <header className='relative z-[60] flex items-center justify-between border-b border-white/5 bg-black/85 px-4 py-3 text-white backdrop-blur sm:hidden'>
-          <div className='flex items-center gap-2'>
-            <LogoGlyph className='h-7 w-7 text-white' />
-            <span className='text-lg font-semibold'>Sociality</span>
-          </div>
-          <div className='flex items-center gap-3'>
-            <button
-              type='button'
-              onClick={() => navigate('/users/search')}
-              className='flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10'
-              aria-label='Search users'
-            >
-              <Search className='h-5 w-5' />
-            </button>
-            <img
-              src={user?.avatarUrl || AVATAR_FALLBACK_SRC}
-              alt={user?.displayName ?? user?.username ?? 'Profile'}
-              onError={handleAvatarError}
-              className='h-10 w-10 rounded-full border border-white/10 object-cover'
-            />
-          </div>
-        </header>
-      )}
       <button
         type='button'
         onClick={handleClose}
@@ -364,23 +339,23 @@ export default function PostDetail() {
       </button>
       <div className='relative flex w-full flex-1 flex-col overflow-hidden bg-black shadow-2xl shadow-black/60 backdrop-blur-md sm:h-auto sm:max-h-[90vh] sm:max-w-[1200px] md:grid md:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
 
-        <div className='relative px-4 sm:px-0  w-full aspect-square bg-neutral-950 md:h-full max-h-[360px] xs:max-h-[350px] xm:max-h-[380px] md:max-h-[410px] lg:max-h-[600px] xl:max-h-[720px] md:max-w-[720px] md:aspect-auto'>
+        <div className='relative w-full max-h-[360px] px-4 sm:px-0 md:aspect-auto md:h-full md:max-h-[410px] md:max-w-[720px] lg:max-h-[600px] xl:max-h-[720px]'>
           <img
             src={hydratedPost.imageUrl}
             alt={hydratedPost.caption ?? 'Post'}
-            className='h-full w-full object-cover rounded-md md:rounded-0'
+            className='h-full w-full rounded-md object-cover md:rounded-0'
           />
           <button
             type='button'
             onClick={handleClose}
             aria-label='Close post'
-            className='absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/80 md:hidden hover:font-bold hover:translate-y-0.5'
+            className='absolute bottom-4 right-4 hidden h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/80 hover:font-bold hover:translate-y-0.5 md:flex'
           >
-            <X className='size-5' />
+            <X className='size-5 cursor-pointer' />
           </button>
         </div>
 
-        <div className='hidden rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6  md:flex md:max-h-[90vh] md:max-w-[480px] md:flex-col md:rounded-none md:border-t-0 md:bg-black md:px-5 md:pb-6 '>
+        <div className='hidden rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6 md:flex md:max-h-[90vh] md:max-w-[480px] md:flex-col md:rounded-none md:border-t-0 md:bg-black md:px-5 md:pb-6'>
           <header className='flex items-start justify-between gap-4 sm:mr-12'>
             <div className='flex items-center gap-3'>
               <img
@@ -390,11 +365,8 @@ export default function PostDetail() {
                 onError={handleAvatarError}
               />
               <div className='leading-tight'>
-                <div className='font-bold text-sm leading-[28px] text-neutral-25'>{authorName}</div>
-                {/* <p className='text-xs text-white/60'>
-                  @{hydratedPost.author?.username}
-                </p> */}
-                <p className='text-xs text-neutral-400 leading-[16px] pt-[2px]'>{postedRelative}</p>
+                <div className='text-sm font-bold leading-[28px] text-neutral-25'>{authorName}</div>
+                <p className='pt-[2px] text-xs leading-[16px] text-neutral-400'>{postedRelative}</p>
               </div>
             </div>
             {isOwner && (
@@ -418,60 +390,13 @@ export default function PostDetail() {
             <CommentsPanel
               postId={hydratedPost.id}
               autoFocusComposer={shouldFocusComposer}
-              actionsSlot={actionsSlot}
+              actionsSlot={desktopActions}
             />
           </div>
         </div>
       </div>
 
-      <div className='px-4 pb-4 pt-5 md:hidden'>
-        {actionsSlot}
-      </div>
-
-      {isSmallScreen && (
-        <Sheet open={isMobileCommentsOpen} onOpenChange={handleMobileSheetChange}>
-          <SheetContent
-            side='bottom'
-            className={cn(
-              'max-h-[80vh] border-none bg-black px-0 pb-4 pt-4 md:hidden',
-              isCommentsEmpty ? 'h-[40vh]' : 'h-[70vh]'
-            )}
-          >
-            <div className='flex h-full min-h-0 flex-col px-4 overflow-hidden'>
-              <CommentsPanel
-                postId={hydratedPost.id}
-                autoFocusComposer={shouldFocusComposer}
-                actionsSlot={actionsSlot}
-                onEmptyStateChange={handleCommentsEmptyChange}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className='bg-[#0b0b11] text-white'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this post?</AlertDialogTitle>
-            <AlertDialogDescription className='text-white/60'>
-              This action cannot be undone. Your post will be removed from
-              Sociality.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel  className="text-foreground" disabled={delMutation.isPending}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => delMutation.mutate()}
-              disabled={delMutation.isPending}
-              className='bg-rose-500 text-white hover:bg-rose-400'
-            >
-              {delMutation.isPending ? 'Deleting…' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteDialog}
     </div>
   );
 }

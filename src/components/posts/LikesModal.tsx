@@ -175,16 +175,19 @@ export function LikesModal({ postId, isOpen, onClose }: LikesModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-md mx-4 bg-zinc-900 rounded-2xl border border-white/10 max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="flex flex-col items-end ">
+
+      <button
+            onClick={onClose}
+            className=" hover:bg-white/10 transition-colors"
+          >
+            <X className="h-6 w-6 text-white/70 cursor-pointer mr-4" />
+          </button>
+      <div className="relative w-full max-w-md mx-4 bg-neutral-950 rounded-2xl border border-white/10 max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Likes</h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-white/10 transition-colors"
-          >
-            <X className="h-5 w-5 text-white/70" />
-          </button>
+          
         </div>
         
         <div className="flex-1 overflow-y-auto">
@@ -252,6 +255,7 @@ export function LikesModal({ postId, isOpen, onClose }: LikesModalProps) {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

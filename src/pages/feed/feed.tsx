@@ -60,7 +60,7 @@ export default function Feed() {
     <>
       <div className="max-w-2xl mx-auto px-4 sm:px-0 space-y-6">
         {items.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post.id} post={post} showHints />
         ))}
         <div ref={sentinelRef} className="h-8" />
         {isFetchingNextPage && <p className="text-center text-white/60">Loading more…</p>}

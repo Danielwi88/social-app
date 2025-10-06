@@ -378,7 +378,7 @@ export default function   CommentsPanel({ postId, autoFocusComposer = false, act
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={delM.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={delM.isPending} className="text-foreground">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               disabled={delM.isPending}
