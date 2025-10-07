@@ -14,7 +14,7 @@ const initialState: FollowStatusState = {
 };
 // Normalize usernames and track follow status with timestamps
 const normalizeKey = (username: string) => username.trim().toLowerCase();
-
+// Follow status appears in multiple places:
 const followStatusSlice = createSlice({
   name: "followStatus",
   initialState,
@@ -26,7 +26,7 @@ const followStatusSlice = createSlice({
       const key = normalizeKey(action.payload.username);
       state.map[key] = {
         isFollowing: action.payload.isFollowing,
-        updatedAt: Date.now(),
+        updatedAt: Date.now(), //Track freshness for cache invalidation
       };
     },
     setFollowStatuses: (

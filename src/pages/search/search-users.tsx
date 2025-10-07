@@ -19,13 +19,13 @@ export default function SearchUsers() {
         const next = new URLSearchParams(prev);
         if (debounced) next.set('q', debounced);
         else next.delete('q');
-        return next.toString() === prevString ? prev : next;
+        return next.toString() === prevString ? prev : next; // Only update if actually changed (prevent infinite loops)
       },
       { replace: true }
     );
   }, [debounced, setSp]);
 
-  const enabled = debounced.trim().length >= 2;
+  const enabled = debounced.trim().length >= 2; // Minimum 2 characters
 
   const res = useQuery({
     queryKey: ['search-users', debounced],

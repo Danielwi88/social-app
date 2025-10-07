@@ -262,9 +262,9 @@ export async function getUserLikes(username: string) {
 export async function searchUsers(q: string, page = 1, limit = 20): Promise<SearchUsersResult> {
   const { data } = await api.get(`/users/search`, { params: { q, page, limit } });
   const payload = data as SearchUsersRaw;
-
+// Handle multiple backend response formats
   const rawUsers = Array.isArray(payload.users) ? payload.users : [];
-
+// Normalize data structure
   const users: PublicUser[] = rawUsers.map((user) => {
     const id = user?.id !== undefined && user?.id !== null ? String(user.id) : "";
     const username = user?.username?.trim() ?? "";
@@ -281,7 +281,7 @@ export async function searchUsers(q: string, page = 1, limit = 20): Promise<Sear
       followers: 0,
       following: 0,
       likes: 0,
-      isFollowing: user?.isFollowedByMe ?? undefined,
+      isFollowing: user?.isFollowedByMe ?? undefined, // Current user's follow status mapping
     } satisfies PublicUser;
   });
 

@@ -13,7 +13,7 @@ const PostDetail = lazy(() => import('@/pages/post/post-detail'));
 const AddPost = lazy(() => import('@/pages/post/add-post'));
 
 const PublicProfile = lazy(() => import('@/pages/public-profile/public-profile'));
-const SearchUsers = lazy(() => import('@/pages/users/search-users'));
+const SearchUsers = lazy(() => import('@/pages/search/search-users'));
 const MyFollowers = lazy(() => import('@/pages/me/followers'));
 const MyFollowing = lazy(() => import('@/pages/me/following'));
 

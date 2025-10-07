@@ -16,6 +16,8 @@ interface LikeButtonProps {
 
 export function LikeButton({ post, variant = "default" }: LikeButtonProps) {
   const dispatch = useAppDispatch();
+//   User clicks like → should see immediate feedback
+// Redux stores optimistic state,
   const reaction = useAppSelector((state) => selectPostReaction(state, post.id));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
