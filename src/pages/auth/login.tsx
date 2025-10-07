@@ -38,12 +38,12 @@ export default function Login() {
   const mutate = useMutation({
     mutationFn: ({ usernameOrEmail, password }: FormValues) =>
       login({ email: usernameOrEmail, password }),
-    onSuccess: async (res) => {
+    onSuccess: async (res) => {//Step 1: Store token immediatelydispatch
       dispatch(setCredentials({ token: res.token, user: null }));
       try {
-        const me = await getMe();
+        const me = await getMe();//2.Fetch user profile
         dispatch(
-          setUser({
+          setUser({ //3.Store user data in Reduxdispatch
             id: me.id,
             username: me.username,
             displayName: me.displayName,
@@ -54,10 +54,10 @@ export default function Login() {
         const description = me.displayName
           ? `Signed in as ${displayLabel}`
           : `Signed in as @${displayLabel}`;
-        toast.success("Welcome back!", { description });
+        toast.success("Welcome back!", { description });//4: Success feedback & navigation
         nav(returnTo, { replace: true });
       } catch {
-        dispatch(clearAuth());
+        dispatch(clearAuth()); // 5: Rollback on profile fetch failuredispatch(clearAuth())
         toast.error("Login failed", { description: "Could not load account data." });
       }
     },

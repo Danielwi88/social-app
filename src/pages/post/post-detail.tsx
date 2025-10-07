@@ -272,7 +272,7 @@ export default function PostDetail() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className='text-foreground' disabled={delMutation.isPending}>
+          <AlertDialogCancel className='text-white' disabled={delMutation.isPending}>
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
