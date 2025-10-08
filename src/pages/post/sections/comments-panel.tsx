@@ -226,8 +226,8 @@ export default function   CommentsPanel({ postId, autoFocusComposer = false, act
 
   return (
     <>
-      <section className="flex h-full min-h-0 flex-col overflow-hidden bg-black sm:rounded-[24px] sm:bg-black/40 sm:backdrop-blur">
-        <header className="flex items-center justify-between border-b border-white/10 px-0 pb-3 pt-5 sm:px-0">
+      <section className="flex h-full md:h-[70%] xl:h-[85%] min-h-0 flex-col overflow-hidden bg-black sm:rounded-[24px] sm:bg-black/40 sm:backdrop-blur">
+        <header className="flex items-center justify-between border-b border-white/10 px-0 pb-3 pt-5 ">
           <div>
             <h3 className="text-base font-semibold text-white">Comments</h3>
             <p className="text-xs text-white/50">{commentCountCopy}</p>
@@ -299,13 +299,13 @@ export default function   CommentsPanel({ postId, autoFocusComposer = false, act
           </div>
 
           {actionsSlot && (
-            <div className="border-t border-white/10 bg-black/45 px-2 py-4 sm:px-0">
+            <div className="hidden md:block border-t border-white/10 bg-black/45 px-2 py-4 sm:py-0 sm:px-0">
               {actionsSlot}
             </div>
           )}
 
           <div className="border-t border-white/10 bg-black/55 px-0 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0))] shadow-inner shadow-black/40 sm:px-0">
-            <form onSubmit={handleSubmit} className="flex items-end gap-3">
+            <form onSubmit={handleSubmit} className="flex items-end gap-3 mb-3">
               <div className="relative">
                 <button
                   type="button"
@@ -378,7 +378,7 @@ export default function   CommentsPanel({ postId, autoFocusComposer = false, act
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={delM.isPending} className="text-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={delM.isPending} className="text-white">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               disabled={delM.isPending}

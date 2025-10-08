@@ -290,7 +290,7 @@ export default function PostDetail() {
   if (isSmallScreen) {
     return (
       <>
-        <div className='mx-auto w-full max-w-2xl px-4 pt-0 sm:pt-4 pb-28'>
+        <div className='mx-auto w-full max-w-2xl px-0 pt-0 sm:pt-4 pb-28'>
           <MobilePostCard
             post={hydratedPost}
             authorName={authorName}
@@ -307,10 +307,10 @@ export default function PostDetail() {
             side='bottom'
             className={cn(
               'max-h-[80vh] border-none bg-black px-0 pb-4 pt-4 md:hidden',
-              isCommentsEmpty ? 'h-[40vh]' : 'h-[70vh]'
+              isCommentsEmpty ? 'h-[40vh]' : 'h-[60vh]'
             )}
           >
-            <div className='flex h-full min-h-0 flex-col overflow-hidden px-4'>
+            <div className='flex h-full min-h-0 flex-col overflow-hidden px-0 xs:px-2'>
               <CommentsPanel
                 postId={hydratedPost.id}
                 autoFocusComposer={shouldFocusComposer}
@@ -339,7 +339,7 @@ export default function PostDetail() {
           <X className='size-5 cursor-pointer' />
         </button>
 
-        <div className='relative w-full max-h-[360px] px-4 sm:px-0 md:aspect-auto md:h-full md:max-h-[410px] md:max-w-[720px] lg:max-h-[600px] xl:max-h-[720px]'>
+        <div className='relative w-full max-h-[360px] px-4 sm:px-0 md:aspect-auto md:h-full md:max-h-[510px] md:max-w-[720px] lg:max-h-[600px] xl:max-h-[720px]'>
           <img
             src={hydratedPost.imageUrl}
             alt={hydratedPost.caption ?? 'Post'}
