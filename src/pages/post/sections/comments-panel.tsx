@@ -1,5 +1,5 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { InfiniteData } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@/hooks/react-query";
+import type { InfiniteData } from "@/hooks/react-query";
 import { addComment, deleteComment, getComments } from "../../../api/posts";
 import type { Comment, CommentsPage } from "../../../types/post";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";

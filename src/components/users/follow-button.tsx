@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@/hooks/react-query';
 import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 

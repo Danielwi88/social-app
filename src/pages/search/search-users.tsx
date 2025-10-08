@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { searchUsers } from '../../api/users';
 import { useDebounce } from '../../hooks/useDebounce';
 import { UserCard } from '../../components/users/user-card';
+import { useSearchUsers } from '../../hooks/react-query';
 
 export default function SearchUsers() {
   const [sp, setSp] = useSearchParams();
@@ -27,11 +26,7 @@ export default function SearchUsers() {
 
   const enabled = debounced.trim().length >= 2; // Minimum 2 characters
 
-  const res = useQuery({
-    queryKey: ['search-users', debounced],
-    queryFn: () => searchUsers(debounced, 1, 20),
-    enabled,
-  });
+  const res = useSearchUsers(debounced, { enabled });
 
   return (
     <div className='max-w-3xl rounded-xl mx-auto space-y-6'>

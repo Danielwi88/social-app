@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@/hooks/react-query";
 import { useEffect, useRef } from "react";
 import { getFeed } from "../../api/posts";
 import { PostCard } from "../../components/posts/PostCard";

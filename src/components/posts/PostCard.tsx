@@ -137,6 +137,9 @@ export function PostCard({ post, showHints = false }: PostCardProps) {
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-x-3 sm:gap-x-4'>
             <LikeButton post={post} variant='compact' />
+            <Tooltip>
+              <TooltipTrigger asChild>
+
             <Link
               to={`/posts/${post.id}`}
               state={{ from: location.pathname, focusComments: true }}
@@ -182,6 +185,9 @@ export function PostCard({ post, showHints = false }: PostCardProps) {
               </svg>
               <span>{post.commentCount}</span>
             </Link>
+              </TooltipTrigger>
+              <TooltipContent side='top' className='z-[100]'>Please give comments</TooltipContent>
+            </Tooltip>
             <button
               type='button'
               onClick={handleShare}

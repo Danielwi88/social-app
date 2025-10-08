@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@/hooks/react-query';
 import { X } from 'lucide-react';
 import { getUserFollowing, getMyFollowing } from '../../api/users';
 import { Button } from '../ui/button';

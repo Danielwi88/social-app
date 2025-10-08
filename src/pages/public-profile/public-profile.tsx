@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/hooks/react-query";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";

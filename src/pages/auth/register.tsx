@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation } from '@/hooks/react-query';
 import { isAxiosError } from 'axios';
 import { register as registerApi } from '../../api/auth';
 import { useAppDispatch } from '../../store';

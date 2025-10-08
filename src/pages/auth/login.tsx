@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation } from "@/hooks/react-query";
 import { login } from "../../api/auth";
 import { useAppDispatch } from "../../store";
 import { clearAuth, setCredentials, setUser } from "../../features/auth/authSlice";

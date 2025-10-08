@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { InfiniteData } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/hooks/react-query";
+import type { InfiniteData } from "@/hooks/react-query";
 import { toast } from "sonner";
 import type { FeedPage, Post } from "../../types/post";
 import { savePost, unsavePost } from "../../api/posts";

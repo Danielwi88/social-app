@@ -19,7 +19,7 @@ import {
   useQuery,
   useQueryClient,
   type InfiniteData,
-} from '@tanstack/react-query';
+} from '@/hooks/react-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { X } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@/hooks/react-query';
 import { getFollowers, getPublicUser } from '../../api/users';
 import { UserCard } from '../../components/users/user-card';
 

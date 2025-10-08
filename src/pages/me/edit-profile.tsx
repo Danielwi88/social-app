@@ -6,7 +6,7 @@ import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/hooks/react-query";
 import { isAxiosError } from "axios";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@/hooks/react-query';
 import { getMyFollowers } from '../../api/users';
 import { UserCard } from '../../components/users/user-card';
 

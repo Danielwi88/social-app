@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@/hooks/react-query';
 import { X } from 'lucide-react';
 import { getUserFollowers, getMyFollowers } from '../../api/users';
 import { Button } from '../ui/button';
@@ -37,7 +37,7 @@ export function FollowersModal({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 z-50  flex items-center justify-center bg-black/30 backdrop-blur-sm '>
+    <div className='fixed inset-0 z-50  flex items-center justify-center bg-black/30 backdrop-blur-sm mb-4'>
       <div className='flex flex-col items-end '>
         <Button
           onClick={onClose}
@@ -46,8 +46,8 @@ export function FollowersModal({
           <X className='h-6 w-6 text-neutral-25 cursor-pointer ' />
         </Button>
 
-        <div className='w-full max-w-[548px] lg:w-[548px] lg:h-[530px]  rounded-2xl bg-neutral-950 p-6'>
-          <div className='flex items-center justify-between mb-6'>
+        <div className='w-full max-w-[548px] lg:w-[548px] lg:h-[530px]  rounded-2xl bg-neutral-950 p-6 overflow-y-auto '>
+          <div className='flex items-center justify-between mb-4'>
             <h2 className='text-xl font-semibold text-white'>Followers</h2>
           </div>
           {/* conditional rendering */}

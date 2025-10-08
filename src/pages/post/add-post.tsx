@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@/hooks/react-query';
 import { Loader2, Trash2, UploadCloud } from 'lucide-react';
 import {
   type ChangeEvent,

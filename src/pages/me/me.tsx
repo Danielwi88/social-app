@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/hooks/react-query";
 import { Bookmark } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,8 +11,7 @@ import { FollowingModal } from "@/components/profile/following-modal";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MyPosts from "@/pages/me/sections/my-posts";
-import MySaved from "@/pages/me/sections/my-saved";
+import { MyPosts, MySaved } from "@/pages/me/sections";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getMe } from "../../api/me";
 

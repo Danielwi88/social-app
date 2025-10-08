@@ -8,7 +8,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { AVATAR_FALLBACK_SRC, handleAvatarError } from "@/lib/avatar";
 import { LogoGlyph } from "@/shared/logo";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/hooks/react-query";
 import { ArrowLeft, Menu, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { Link, Outlet, useLocation, useNavigate, matchPath } from "react-router-dom";
