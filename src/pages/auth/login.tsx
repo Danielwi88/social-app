@@ -104,6 +104,7 @@ export default function Login() {
             <Input
               {...register("usernameOrEmail")}
               placeholder="you@example.com"
+              autoComplete="username"
               aria-invalid={!!formState.errors.usernameOrEmail}
               className={cn("!text-md",
                 inputBase, 
@@ -122,6 +123,7 @@ export default function Login() {
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 aria-invalid={!!formState.errors.password}
                 className={cn("!text-md",
                   inputBase,
