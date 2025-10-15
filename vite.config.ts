@@ -7,15 +7,10 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiProxyTarget = env.VITE_API_BASE
+  const isDev = mode === 'development'
 
-  return {
-    plugins: [react(), tailwindcss()],
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "src"),
-      },
-    },
-    server: apiProxyTarget
+  const serverConfig =
+    isDev && apiProxyTarget
       ? {
           proxy: {
             '/api': {
@@ -24,10 +19,19 @@ export default defineConfig(({ mode }) => {
             },
           },
         }
-      : undefined,
-      define: {
-    // Suppress runtime.lastError warnings in development
-    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
-  },
+      : undefined
+
+  return {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "src"),
+      },
+    },
+    server: serverConfig,
+    define: {
+      // Suppress runtime.lastError warnings in development
+      __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
+    },
   }
 })

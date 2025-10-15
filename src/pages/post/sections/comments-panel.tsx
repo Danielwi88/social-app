@@ -245,14 +245,14 @@ export default function   CommentsPanel({ postId, autoFocusComposer = false, act
             )}
 
             <ul className="space-y-4">
-              {items.map((c) => {
+              {items.map((c, index) => {
                 if (!c?.author) return null;
                 const displayName = getUserDisplayName(c.author);
                 const username = c.author.username ?? "unknown";
                 const relativeTimeLabel = dayjs(c.createdAt).fromNow();
 
                 return (
-                  <li key={c.id} className="flex gap-3 border-b border-white/5 bg-transparent py-3 sm:bg-black/30">
+                  <li key={`${c.id}-${index}`} className="flex gap-3 border-b border-white/5 bg-transparent py-3 sm:bg-black/30">
                     <img
                       src={c.author.avatarUrl || AVATAR_FALLBACK_SRC}
                       alt={displayName}
