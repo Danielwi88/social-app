@@ -44,14 +44,56 @@ function DialogOverlay({
   )
 }
 
+type DialogContentProps = React.ComponentProps<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean
+  titleText?: string
+  descriptionText?: string
+}
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  titleText = "Dialog panel",
+  descriptionText = "Additional dialog details",
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean
-}) {
+}: DialogContentProps) {
+  const ariaLabelledBy = props["aria-labelledby"];
+  const ariaDescribedBy = props["aria-describedby"];
+  const contentProps = { ...props } as Record<string, unknown>;
+  delete contentProps["aria-labelledby"];
+  delete contentProps["aria-describedby"];
+
+  const childArray = React.Children.toArray(children);
+  const nodeContains = (
+    node: React.ReactNode,
+    component: React.ElementType,
+    slot: string,
+  ): boolean => {
+    if (!React.isValidElement(node)) return false;
+    if (node.type === component) return true;
+    const nodeProps = node.props as {
+      ["data-slot"]?: string
+      children?: React.ReactNode
+    };
+    const slotValue = nodeProps["data-slot"];
+    if (slotValue === slot) return true;
+    if (!nodeProps.children) return false;
+    return React.Children.toArray(nodeProps.children).some((child) =>
+      nodeContains(child, component, slot),
+    );
+  };
+
+  const hasTitle = childArray.some(
+    (child) => nodeContains(child, DialogPrimitive.Title, "dialog-title"),
+  );
+  const hasDescription = childArray.some(
+    (child) => nodeContains(child, DialogPrimitive.Description, "dialog-description"),
+  );
+
+  const fallbackTitleId = React.useId();
+  const fallbackDescriptionId = React.useId();
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -61,8 +103,24 @@ function DialogContent({
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
           className
         )}
-        {...props}
+        {...(contentProps as React.ComponentProps<typeof DialogPrimitive.Content>)}
+        aria-labelledby={
+          ariaLabelledBy ?? (hasTitle ? undefined : fallbackTitleId)
+        }
+        aria-describedby={
+          ariaDescribedBy ?? (hasDescription ? undefined : fallbackDescriptionId)
+        }
       >
+        {!hasTitle && (
+          <DialogPrimitive.Title id={fallbackTitleId} className="sr-only">
+            {titleText}
+          </DialogPrimitive.Title>
+        )}
+        {!hasDescription && (
+          <DialogPrimitive.Description id={fallbackDescriptionId} className="sr-only">
+            {descriptionText}
+          </DialogPrimitive.Description>
+        )}
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

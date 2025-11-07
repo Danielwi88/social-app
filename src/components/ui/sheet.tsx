@@ -44,14 +44,56 @@ function SheetOverlay({
   )
 }
 
+type SheetContentProps = React.ComponentProps<typeof SheetPrimitive.Content> & {
+  side?: "top" | "right" | "bottom" | "left"
+  titleText?: string
+  descriptionText?: string
+}
+
 function SheetContent({
   className,
   children,
   side = "right",
+  titleText = "Drawer panel",
+  descriptionText = "Additional drawer details",
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Content> & {
-  side?: "top" | "right" | "bottom" | "left"
-}) {
+}: SheetContentProps) {
+  const ariaLabelledBy = props["aria-labelledby"];
+  const ariaDescribedBy = props["aria-describedby"];
+  const contentProps = { ...props } as Record<string, unknown>;
+  delete contentProps["aria-labelledby"];
+  delete contentProps["aria-describedby"];
+
+  const childArray = React.Children.toArray(children);
+  const nodeContains = (
+    node: React.ReactNode,
+    component: React.ElementType,
+    slot: string,
+  ): boolean => {
+    if (!React.isValidElement(node)) return false;
+    if (node.type === component) return true;
+    const nodeProps = node.props as {
+      ["data-slot"]?: string
+      children?: React.ReactNode
+    };
+    const slotValue = nodeProps["data-slot"];
+    if (slotValue === slot) return true;
+    if (!nodeProps.children) return false;
+    return React.Children.toArray(nodeProps.children).some((child) =>
+      nodeContains(child, component, slot),
+    );
+  };
+
+  const hasTitle = childArray.some(
+    (child) => nodeContains(child, SheetPrimitive.Title, "sheet-title"),
+  );
+  const hasDescription = childArray.some(
+    (child) => nodeContains(child, SheetPrimitive.Description, "sheet-description"),
+  );
+
+  const fallbackTitleId = React.useId();
+  const fallbackDescriptionId = React.useId();
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -69,8 +111,24 @@ function SheetContent({
             "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
           className
         )}
-        {...props}
+        {...(contentProps as React.ComponentProps<typeof SheetPrimitive.Content>)}
+        aria-labelledby={
+          ariaLabelledBy ?? (hasTitle ? undefined : fallbackTitleId)
+        }
+        aria-describedby={
+          ariaDescribedBy ?? (hasDescription ? undefined : fallbackDescriptionId)
+        }
       >
+        {!hasTitle && (
+          <SheetPrimitive.Title id={fallbackTitleId} className="sr-only">
+            {titleText}
+          </SheetPrimitive.Title>
+        )}
+        {!hasDescription && (
+          <SheetPrimitive.Description id={fallbackDescriptionId} className="sr-only">
+            {descriptionText}
+          </SheetPrimitive.Description>
+        )}
         {children}
         <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute -top-6 right-0 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
           <XIcon className="size-6 text-neutral-25 cursor-pointer" />
