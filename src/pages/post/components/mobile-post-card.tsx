@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { AVATAR_FALLBACK_SRC, handleAvatarError } from '@/lib/avatar';
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 import type { Post } from '@/types/post';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -28,11 +29,10 @@ export function MobilePostCard({
       <header className='flex items-center justify-between gap-3 py-0'>
         <div className='flex items-center gap-2 sm:gap-3'>
           <Link to={profileHref} className='inline-flex' aria-label={`View ${authorName}'s profile`}>
-            <img
-              src={post.author?.avatarUrl || AVATAR_FALLBACK_SRC}
+            <AvatarWithFallback
+              src={post.author?.avatarUrl}
               alt={authorName}
-              className='h-11 w-11 rounded-full object-cover transition hover:opacity-90'
-              onError={handleAvatarError}
+              className='h-11 w-11 rounded-full transition hover:opacity-90'
             />
           </Link>
           <div className='leading-[28px]'>
@@ -57,10 +57,10 @@ export function MobilePostCard({
       </header>
 
       <div className='w-full mt-2'>
-        <img
+        <ProgressiveImage
           src={post.imageUrl}
           alt={post.caption ?? 'Post'}
-          className='aspect-square w-full rounded-md object-cover'
+          className='aspect-square w-full rounded-md'
         />
       </div>
 

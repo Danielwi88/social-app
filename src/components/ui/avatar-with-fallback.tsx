@@ -1,56 +1,41 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { AVATAR_FALLBACK_SRC } from "@/lib/avatar";
 
 type AvatarWithFallbackProps = {
   src?: string | null;
   alt: string;
   className?: string;
+  imgClassName?: string;
 };
 
-export function AvatarWithFallback({ src, alt, className = "" }: AvatarWithFallbackProps) {
-  const [isLoading, setIsLoading] = useState(!!src);
+export function AvatarWithFallback({ src, alt, className, imgClassName }: AvatarWithFallbackProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (!src) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
+    setIsLoaded(false);
     setHasError(false);
-
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      setHasError(true);
-    }, 1200);
-
-    const img = new Image();
-    img.onload = () => {
-      clearTimeout(timer);
-      setIsLoading(false);
-      setHasError(false);
-    };
-    img.onerror = () => {
-      clearTimeout(timer);
-      setIsLoading(false);
-      setHasError(true);
-    };
-    img.src = src;
-
-    return () => clearTimeout(timer);
   }, [src]);
 
-  if (isLoading) {
-    return (
-      <div className={`animate-pulse bg-white/10 rounded-full ${className}`} />
-    );
-  }
+  const resolvedSrc = !hasError && src ? src : AVATAR_FALLBACK_SRC;
 
   return (
-    <img
-      src={hasError || !src ? "/avatarfall.svg" : src}
-      alt={alt}
-      className={className}
-    />
+    <span className={cn("relative inline-flex overflow-hidden rounded-full bg-white/10", className)}>
+      <img
+        src={resolvedSrc}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        className={cn(
+          "h-full w-full object-cover transition-opacity duration-300",
+          imgClassName,
+          isLoaded ? "opacity-100" : "opacity-0"
+        )}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setHasError(true)}
+      />
+      {!isLoaded && <span className="absolute inset-0 animate-pulse bg-white/15" aria-hidden="true" />}
+    </span>
   );
 }

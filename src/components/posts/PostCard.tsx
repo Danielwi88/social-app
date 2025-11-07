@@ -1,6 +1,7 @@
 import { LikeButton } from '@/components/posts/like-button';
 import { LikesModal } from '@/components/posts/LikesModal';
 import { SaveButton } from '@/components/posts/save-button';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AVATAR_FALLBACK_SRC, handleAvatarError } from '@/lib/avatar';
 import { getUserDisplayName } from '@/lib/user';
@@ -96,11 +97,11 @@ export function PostCard({ post, showHints = false }: PostCardProps) {
   );
 
   const imageButton = (
-    <button onClick={() => setShowLikesModal(true)} className='w-full'>
-      <img
+    <button onClick={() => setShowLikesModal(true)} className='block w-full'>
+      <ProgressiveImage
         src={post.imageUrl}
         alt={post.caption?.slice(0, 60) || 'post'}
-        className='w-full aspect-square rounded-md object-cover cursor-pointer '
+        className='aspect-square w-full rounded-md cursor-pointer'
       />
     </button>
   );

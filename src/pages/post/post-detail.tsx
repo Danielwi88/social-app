@@ -9,8 +9,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 import { selectAuth } from '@/features/auth/authSlice';
-import { AVATAR_FALLBACK_SRC, handleAvatarError } from '@/lib/avatar';
 import { getUserDisplayName } from '@/lib/user';
 import CommentsPanel from '@/pages/post/sections/comments-panel';
 import { useAppSelector } from '@/store';
@@ -340,22 +341,22 @@ export default function PostDetail() {
         </button>
 
         <div className='relative w-full max-h-[360px] px-4 sm:px-0 md:aspect-auto md:h-full md:max-h-[510px] md:max-w-[720px] lg:max-h-[600px] xl:max-h-[720px]'>
-          <img
+          <ProgressiveImage
             src={hydratedPost.imageUrl}
             alt={hydratedPost.caption ?? 'Post'}
-            className='h-full w-full rounded-md object-cover md:rounded-0'
+            className='h-full w-full rounded-md md:rounded-0'
+            imgClassName='object-cover'
+            priority
           />
-          
         </div>
 
         <div className='hidden rounded-t-[32px] border-t border-white/10 bg-black/90 px-4 pb-6 md:flex md:max-h-[90vh] md:max-w-[480px] md:flex-col md:rounded-none md:border-t-0 md:bg-black md:px-5 md:pb-6'>
           <header className='flex items-start justify-between gap-4 sm:mr-12'>
             <div className='flex items-center gap-3'>
-              <img
-                src={hydratedPost.author?.avatarUrl || AVATAR_FALLBACK_SRC}
+              <AvatarWithFallback
+                src={hydratedPost.author?.avatarUrl}
                 alt={authorName}
-                className='h-10 w-10 rounded-full object-cover'
-                onError={handleAvatarError}
+                className='h-10 w-10'
               />
               <div className='leading-tight'>
                 <div className='text-sm font-bold leading-[28px] text-neutral-25'>{authorName}</div>
