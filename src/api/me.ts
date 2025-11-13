@@ -1,4 +1,5 @@
 import { api } from "../lib/axios";
+import { compressImageFile } from "../lib/image";
 import type { Post, UserMini } from "../types/post";
 import { getFeed } from "./posts";
 
@@ -84,7 +85,13 @@ export async function updateMe(payload: UpdateMePayload) {
   if (payload.phone !== undefined) formData.append("phone", payload.phone);
   if (payload.bio !== undefined) formData.append("bio", payload.bio ?? "");
   if (payload.avatarUrl !== undefined) formData.append("avatarUrl", payload.avatarUrl ?? "");
-  if (payload.avatar instanceof File) formData.append("avatar", payload.avatar);
+  if (payload.avatar instanceof File) {
+    const optimizedAvatar = await compressImageFile(payload.avatar, {
+      maxSizeMB: 0.6,
+      maxWidthOrHeight: 640,
+    });
+    formData.append("avatar", optimizedAvatar);
+  }
 
   const { data } = await api.patch("/me", formData, {
     headers: { "Content-Type": "multipart/form-data" },

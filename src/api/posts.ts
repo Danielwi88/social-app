@@ -1,4 +1,5 @@
 import { api } from "../lib/axios";
+import { compressImageFile } from "../lib/image";
 import type { Post, Comment, FeedPage, CommentsPage, UserMini } from "../types/post";
 
 type FeedPagination = {
@@ -182,7 +183,11 @@ export async function unsavePost(id: string) {
 
 export async function createPost(payload: { image: File; caption?: string }) {
   const formData = new FormData();
-  formData.append("image", payload.image);
+  const optimizedImage = await compressImageFile(payload.image, {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1400,
+  });
+  formData.append("image", optimizedImage);
   if (payload.caption) formData.append("caption", payload.caption);
 
   const { data } = await api.post(`/posts`, formData, {
